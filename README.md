@@ -7,7 +7,7 @@ La `description` de cada `SKILL.md` está escrita para el disparo automático: n
 
 ## Cómo funciona el sistema
 
-Este catálogo no es solo una estructura de carpetas — tiene reglas explícitas de cuándo una skill sube de madurez o de canal, qué evidencia hace falta, y quién aprueba el cambio. Esas reglas están en [`foundry/governance.md`](foundry/governance.md); léelo antes de mover una skill de canal. Cada decisión de promoción queda registrada en [`foundry/rounds/`](foundry/rounds/README.md), y la evidencia que la respalda en [`foundry/cases/`](foundry/cases/README.md).
+Este catálogo no es solo una estructura de carpetas — tiene reglas explícitas de cuándo una skill sube de madurez o de canal, qué evidencia hace falta, y quién aprueba el cambio. Esas reglas están en [`foundry/governance.md`](foundry/governance.md); léelo antes de mover una skill de canal. Cada decisión de promoción queda registrada en [`foundry/rounds/`](foundry/rounds/README.md), la evidencia liviana (un uso real, sin lección armada) en [`foundry/runs/`](foundry/runs/README.md), y los casos completos en [`foundry/cases/`](foundry/cases/README.md). [`skillkit`](https://github.com/crafter-station/skill-kit) (instalado como skill global) da un conteo real de invocaciones — es una pista de dónde mirar, nunca evidencia por sí sola; ver [`foundry/skillkit-integration.md`](foundry/skillkit-integration.md).
 
 **Canal** (`stable` / `candidate` / `experimental`) responde "¿qué tan recomendada está su instalación?".
 **Madurez** (`experimental` → `dogfooded` → `evaluated` → `validated` / `deprecated`) responde "¿qué evidencia real la respalda?".

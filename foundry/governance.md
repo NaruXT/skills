@@ -14,7 +14,8 @@ flowchart TB
   Review{"Revisión humana"}
 
   Skill["Método de skill"]
-  Case["Caso registrado"]
+  Run["Run anotado<br/>(foundry/runs/)"]
+  Case["Caso registrado<br/>(foundry/cases/)"]
   Reject["Sin cambio"]
   Gap["Vacío, no entendido todavía"]
 
@@ -23,22 +24,25 @@ flowchart TB
   Candidate --> Review
 
   Review -->|método reutilizable| Skill
+  Review -->|uso real, sin lección armada todavía| Run
   Review -->|precedente útil, no generalizable aún| Case
   Review -->|evidencia débil o anecdótica| Reject
   Review -->|no está claro todavía| Gap
 
+  Skill --> Run
   Skill --> Case
+  Run -. respalda .-> Skill
   Case -. respalda .-> Skill
 ```
 
-Un caso (`foundry/cases/<archivo>.md`) es el registro mínimo: qué trabajo real fue, qué se hizo, qué salió. Una skill puede existir sin casos todavía (es lo normal en `experimental`), pero no puede subir de madurez sin al menos uno.
+Un caso (`foundry/cases/<archivo>.md`) es el registro con lección: qué trabajo real fue, qué se hizo, qué salió. Un run (`foundry/runs/<skill>/<archivo>.md`) es su versión más barata — un uso real anotado en el momento, sin lección todavía armada. Una skill puede existir sin ninguno de los dos (es lo normal en `experimental`), pero no puede subir de madurez sin al menos un run o un caso real.
 
 ## Madurez de la skill
 
 | Estado | Evidencia requerida |
 |---|---|
 | `experimental` | Existe un método coherente y un límite de disparo (`description`) claro |
-| `dogfooded` | El método se usó en trabajo real y ese uso está registrado en `foundry/cases/` |
+| `dogfooded` | El método se usó en trabajo real y ese uso está registrado en `foundry/runs/` o `foundry/cases/` |
 | `evaluated` | Existe una comparación contra la línea base (hacerlo sin la skill), aunque el resultado sea poco concluyente |
 | `validated` | El efecto positivo se repitió en casos distintos, con revisión humana de por medio |
 | `deprecated` | La evidencia o un método mejor muestra que ya no conviene recomendarla |
@@ -46,6 +50,15 @@ Un caso (`foundry/cases/<archivo>.md`) es el registro mínimo: qué trabajo real
 El registro de fuente de verdad es [`maturity.json`](maturity.json). **Ninguna skill es `validated` por defecto**, sin importar cuánto se use informalmente.
 
 Las skills deprecadas no se borran: se conservan en `foundry/deprecated/<nombre>/` con su fuente completa y un link a la decisión que las deprecó.
+
+## Cómo se usa SkillKit
+
+Hay una señal de uso adicional, real pero limitada: `skillkit` (instalado como skill global,
+lee las sesiones locales de Claude Code) da un conteo de invocaciones por skill. **Un conteo alto
+nunca es evidencia suficiente por sí solo** — solo dice que la skill se cargó en una sesión, no
+que se aplicó a trabajo real ni qué resultó. Es una pista de dónde mirar, no una promoción. Ver
+[`skillkit-integration.md`](skillkit-integration.md) para el criterio completo, con un ejemplo
+real de este mismo catálogo donde el conteo alto no bastó y el conteo bajo con evidencia real sí.
 
 ## Canales de distribución
 
