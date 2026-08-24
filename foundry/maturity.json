@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "release": "0.0.1",
+  "skills": {
+    "agent-architect": {
+      "type": "intake",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Entrevista en 6 fases para especificar un agente de IA (subagente, skill, workflow) antes de escribir cualquier código o configuración. Registrada por su regla de oro (nunca avanza con una respuesta ambigua), sin ronda de dogfooding ni comparación contra línea base todavía."
+    },
+    "architecture-map": {
+      "type": "documentation",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Genera documentación de arquitectura grounded en el código real, con diagramas Mermaid validados contra el parser oficial antes de darse por terminados. Tiene scripts propios (validate.mjs, screenshot.mjs) pero aún sin caso de uso real documentado ni comparación contra línea base."
+    },
+    "cost-audit": {
+      "type": "audit",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Audita consumo y costo real de un sistema con LLM/API: mapea gasto, agrega logging si falta, detecta llamadas redundantes, mide costo real por unidad. Nace de una auditoría real en fb-question-detector (2026-07-23) que encontró un bug de 49% de llamadas reprocesadas innecesariamente. Un caso real documentado; sin comparación contra línea base todavía."
+    },
+    "dando-seguimiento-a-proyectos": {
+      "type": "tracking",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Compara el estado de una iniciativa contra su objetivo declarado y señala el riesgo más urgente para llegar a él. Método corto y de uso frecuente; sin ronda de dogfooding formal ni comparación contra línea base."
+    },
+    "gerente-general-estrategico": {
+      "type": "persona",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Persona de gerente general para analizar una decisión estratégica combinando visión de largo plazo con microgestión selectiva. No se autoactiva por descripción (disable-model-invocation). Distinta en naturaleza al resto del catálogo: es un rol, no un protocolo de ingeniería."
+    },
+    "network-traffic-assessment": {
+      "type": "audit",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Genera un Health Check / Assessment de un firewall Palo Alto Networks a partir de un Backup XML y un Tech Support File, siguiendo la estructura de un reporte oficial de Palo Alto. Usada en trabajo real de cliente (SEK), con ejemplo de reporte anonimizado como evidencia; sin comparación contra línea base todavía."
+    },
+    "visual-style-reference": {
+      "type": "extraction",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Analiza una imagen (screenshot, diseño, moodboard) y genera un documento de referencia de estilo visual: paleta de colores, sistema tipográfico, elementos distintivos. Sin caso de uso real documentado ni comparación contra línea base."
+    }
+  }
+}
