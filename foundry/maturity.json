@@ -17,8 +17,8 @@
     "cost-audit": {
       "type": "audit",
       "channel": "experimental",
-      "maturity": "experimental",
-      "summary": "Audita consumo y costo real de un sistema con LLM/API: mapea gasto, agrega logging si falta, detecta llamadas redundantes, mide costo real por unidad. Nace de una auditoría real en fb-question-detector (2026-07-23) que encontró un bug de 49% de llamadas reprocesadas innecesariamente. Un caso real documentado; sin comparación contra línea base todavía."
+      "maturity": "dogfooded",
+      "summary": "Audita consumo y costo real de un sistema con LLM/API: mapea gasto, agrega logging si falta, detecta llamadas redundantes, mide costo real por unidad. Promovida a dogfooded en la Ronda 001 sobre un caso real (fb-question-detector, 2026-07-23: bug de 49% de llamadas reprocesadas, encontrado y corregido). Caso registrado en foundry/cases/cost-audit-fb-question-detector.md; sin comparación contra línea base todavía."
     },
     "dando-seguimiento-a-proyectos": {
       "type": "tracking",
@@ -35,8 +35,8 @@
     "network-traffic-assessment": {
       "type": "audit",
       "channel": "experimental",
-      "maturity": "experimental",
-      "summary": "Genera un Health Check / Assessment de un firewall Palo Alto Networks a partir de un Backup XML y un Tech Support File, siguiendo la estructura de un reporte oficial de Palo Alto. Usada en trabajo real de cliente (SEK), con ejemplo de reporte anonimizado como evidencia; sin comparación contra línea base todavía."
+      "maturity": "dogfooded",
+      "summary": "Genera un Health Check / Assessment de un firewall Palo Alto Networks a partir de un Backup XML y un Tech Support File, siguiendo la estructura de un reporte oficial de Palo Alto. Promovida a dogfooded en la Ronda 001 sobre un caso real de cliente (SEK), con ejemplo de reporte anonimizado como evidencia. Caso registrado en foundry/cases/network-traffic-assessment-sek-health-check.md con limitación anotada (fecha e inputs originales no recuperables); sin comparación contra línea base todavía."
     },
     "visual-style-reference": {
       "type": "extraction",

@@ -4,4 +4,4 @@ Cada carpeta registra una candidata, la evidencia considerada, el veredicto, y l
 
 | Ronda | Candidata | Decisión |
 |---|---|---|
-| [001](001-bootstrap-catalog/README.md) | ganar madurez retroactiva para las 7 skills fundacionales | propuesto: `cost-audit` y `network-traffic-assessment` a `dogfooded`; el resto queda en `experimental` |
+| [001](001-bootstrap-catalog/README.md) | ganar madurez retroactiva para las 7 skills fundacionales | aprobado: `cost-audit` y `network-traffic-assessment` a `dogfooded`; el resto queda en `experimental` |

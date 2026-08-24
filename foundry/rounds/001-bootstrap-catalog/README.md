@@ -1,7 +1,7 @@
 # Ronda 001: Bootstrap del catálogo
 
-Status: propuesto, a la espera de tu decisión
-Fecha: 2026-08-24
+Status: aprobado
+Fecha: 2026-08-24 (propuesto) — aprobado 2026-08-24
 Alcance: las 7 skills migradas desde `~/.claude/skills` al crear este repo
 
 ## Pregunta de decisión
@@ -39,7 +39,7 @@ Sin cambio de madurez para `agent-architect`, `architecture-map`, `dando-seguimi
 
 `gerente-general-estrategico` queda fuera de esta evaluación: el marco de "caso con resultado verificable" no encaja con una skill de persona/rol de la misma manera. No se le asigna madurez por ahora — la próxima ronda debería decidir explícitamente si este tipo de skill necesita su propio criterio de promoción o si simplemente no aplica.
 
-**Esta ronda no toca `maturity.json` todavía** — según `governance.md`, "una persona (vos) aprueba la promoción explícitamente." Si confirmás, se aplican los dos cambios de arriba.
+**Aprobado.** `foundry/maturity.json` refleja ambos cambios: `cost-audit` y `network-traffic-assessment` en `maturity: "dogfooded"`, canal sin cambios (`experimental`).
 
 ## Seguimiento
 

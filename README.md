@@ -19,7 +19,7 @@ Ninguna skill nace en `stable` ni en `validated`. Ninguna sube sola: cada promoc
 
 ## Skills
 
-Las 7 skills migradas desde `~/.claude/skills` están hoy en canal `experimental`. La [Ronda 001](foundry/rounds/001-bootstrap-catalog/README.md) ya evaluó su evidencia retroactiva y propone subir la madurez de `cost-audit` y `network-traffic-assessment` a `dogfooded` — falta tu aprobación para que se refleje en `maturity.json`.
+Las 7 skills migradas desde `~/.claude/skills` están todas en canal `experimental`. La [Ronda 001](foundry/rounds/001-bootstrap-catalog/README.md) evaluó su evidencia retroactiva y promovió `cost-audit` y `network-traffic-assessment` a madurez `dogfooded`; las otras cinco quedan en `experimental` hasta que exista un caso real registrado en `foundry/cases/`.
 
 ### `agent-architect`
 [agent-architect](skills/.experimental/agent-architect) entrevista en 6 fases secuenciales para especificar un agente de IA (subagente, skill, workflow de automatización) antes de escribir cualquier código o configuración. Nunca avanza a la siguiente pregunta con una respuesta ambigua, y nunca genera la especificación final con campos pendientes.
