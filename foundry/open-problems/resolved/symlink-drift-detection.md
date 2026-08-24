@@ -1,4 +1,13 @@
-# Problema abierto: detección de symlinks rotos / copias divergentes
+# [RESUELTO] Detección de symlinks rotos / copias divergentes
+
+**Resuelto el 2026-08-24.** La investigación en `symlink-drift-detection.research.md` (mismo directorio) recomendó extender `validate-skills.mjs` con un modo `--local`. En cambio, terminó resuelto en dos piezas ya construidas por otras razones:
+
+1. `scripts/lib/symlinks.mjs` (`classifySymlink` + `reconcileSymlink`, con la clasificación `lstatSync`/`isSymbolicLink` exacta que este research documentó) — usado por `scripts/promote.mjs`, que ahora es el único camino para mover la carpeta de una skill y siempre realinea el symlink en la misma operación. Esto elimina la causa más común de raíz, en vez de detectarla después.
+2. `scripts/monthly-review.mjs` reusa el mismo `classifySymlink` (solo lectura) para cubrir el resto — drift que no pasó por una promoción (borrado manual, copia restaurada). Se reporta en el borrador de la ronda mensual, nunca se corrige solo.
+
+El planteo original queda abajo tal cual se escribió, sin editar, como registro de lo que se pidió investigar.
+
+---
 
 Este archivo es un prompt autocontenido. Pegalo entero al empezar una sesión nueva de Claude Code para retomar este problema sin depender de que la sesión tenga memoria de la conversación donde se planteó.
 

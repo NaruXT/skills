@@ -18,21 +18,11 @@
 //   bun scripts/promote.mjs review-gate --channel stable --decision rounds/002-.../README.md
 //   bun scripts/promote.mjs pick-an-issue --maturity deprecated --reason "reemplazada por issue-intake"
 
-import {
-	existsSync,
-	lstatSync,
-	mkdirSync,
-	readFileSync,
-	realpathSync,
-	renameSync,
-	rmSync,
-	symlinkSync,
-	unlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
+import { expectedTargetFor, reconcileSymlink } from "./lib/symlinks.mjs";
 
 const REPO_ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const MATURITY_PATH = join(REPO_ROOT, "foundry", "maturity.json");
@@ -80,67 +70,37 @@ function physicalRoot(name) {
 }
 
 function expectedPathFor(name, channel) {
-	return channel === "stable"
-		? join(REPO_ROOT, "skills", name)
-		: join(REPO_ROOT, "skills", ".experimental", name);
+	return expectedTargetFor(REPO_ROOT, name, channel);
 }
 
-// --- classify + repair the installed symlink at ~/.claude/skills/<name> ---
-// Método derivado de foundry/open-problems/symlink-drift-detection.research.md
-// (lstatSync + isSymbolicLink, nunca statSync/existsSync solos para clasificar).
-function reconcileSymlink(name, expectedTarget, { dryRun, forceSymlink }) {
+// Wrapper fino sobre lib/symlinks.mjs: hace la clasificación+corrección real y
+// solo se encarga de imprimir el resultado en el estilo de este script.
+function reconcileSymlinkAndReport(name, expectedTarget, { dryRun, forceSymlink }) {
 	const installedPath = join(INSTALLED_ROOT, name);
-	const lst = (() => {
-		try {
-			return lstatSync(installedPath);
-		} catch {
-			return null;
-		}
-	})();
+	const result = reconcileSymlink(installedPath, expectedTarget, { dryRun, forceSymlink });
 
-	if (lst === null) {
-		step(`symlink: no existe ${installedPath} — ${dryRun ? "(dry-run) crearía" : "creando"} enlace a ${expectedTarget}`);
-		if (!dryRun) symlinkSync(expectedTarget, installedPath);
-		return;
-	}
-
-	if (lst.isSymbolicLink()) {
-		let resolved = null;
-		try {
-			resolved = realpathSync(installedPath);
-		} catch {
-			resolved = null;
-		}
-		// Comparar contra la ruta esperada ya resuelta (no el join crudo): si
-		// algún componente de REPO_ROOT fuera en sí un symlink, comparar contra
-		// el join sin resolver daría un falso "no coincide".
-		const realExpected = existsSync(expectedTarget) ? realpathSync(expectedTarget) : expectedTarget;
-		if (resolved === realExpected) {
+	switch (result.action) {
+		case "none":
 			step(`symlink: ${name} ya apunta correctamente a ${expectedTarget}`);
-			return;
+			break;
+		case "created":
+			step(`symlink: no existía ${installedPath} — ${dryRun ? "(dry-run) crearía" : "creado"} enlace a ${expectedTarget}`);
+			break;
+		case "relinked": {
+			const reason = result.status === "broken" ? "estaba roto (apuntaba a una ruta que ya no existe)" : `apuntaba a ${result.resolved}, no a ${expectedTarget}`;
+			step(`symlink: ${installedPath} ${reason} — ${dryRun ? "(dry-run) realinearía" : "realineado"}`);
+			break;
 		}
-		const reason = resolved === null ? "está roto (apunta a una ruta que ya no existe)" : `apunta a ${resolved}, no a ${expectedTarget}`;
-		step(`symlink: ${installedPath} ${reason} — ${dryRun ? "(dry-run) realinearía" : "realineando"}`);
-		if (!dryRun) {
-			unlinkSync(installedPath);
-			symlinkSync(expectedTarget, installedPath);
-		}
-		return;
-	}
-
-	// Existe y NO es symlink: copia real divergente. No se pisa sin --force-symlink.
-	if (!forceSymlink) {
-		console.warn(
-			`\n  ⚠ ${installedPath} es una carpeta/archivo real, no un symlink — posible copia divergente.\n` +
-				`    No se toca automáticamente. Si confirmaste que no tiene cambios propios, volvé a` +
-				`\n    correr con --force-symlink para reemplazarla por el symlink correcto.\n`,
-		);
-		return;
-	}
-	step(`symlink: ${installedPath} es una copia real — ${dryRun ? "(dry-run) reemplazaría" : "reemplazando"} por symlink (--force-symlink)`);
-	if (!dryRun) {
-		rmSync(installedPath, { recursive: true, force: true });
-		symlinkSync(expectedTarget, installedPath);
+		case "skipped-needs-force":
+			console.warn(
+				`\n  ⚠ ${installedPath} es una carpeta/archivo real, no un symlink — posible copia divergente.\n` +
+					`    No se toca automáticamente. Si confirmaste que no tiene cambios propios, volvé a` +
+					`\n    correr con --force-symlink para reemplazarla por el symlink correcto.\n`,
+			);
+			break;
+		case "replaced":
+			step(`symlink: ${installedPath} era una copia real — ${dryRun ? "(dry-run) reemplazaría" : "reemplazado"} por symlink (--force-symlink)`);
+			break;
 	}
 }
 
@@ -219,7 +179,7 @@ function main() {
 		}
 
 		const expectedTarget = expectedPathFor(name, targetChannel);
-		reconcileSymlink(name, expectedTarget, { dryRun: args.dryRun, forceSymlink: args.forceSymlink });
+		reconcileSymlinkAndReport(name, expectedTarget, { dryRun: args.dryRun, forceSymlink: args.forceSymlink });
 	}
 
 	if (args.dryRun) {

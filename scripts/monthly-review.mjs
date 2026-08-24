@@ -13,8 +13,10 @@
 //   bun scripts/monthly-review.mjs
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
+import { classifySymlink, expectedTargetFor } from "./lib/symlinks.mjs";
 
 const REPO_ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const MATURITY_PATH = join(REPO_ROOT, "foundry", "maturity.json");
@@ -22,12 +24,17 @@ const LAST_REVIEW_PATH = join(REPO_ROOT, "foundry", ".last-monthly-review");
 const CASES_DIR = join(REPO_ROOT, "foundry", "cases");
 const RUNS_DIR = join(REPO_ROOT, "foundry", "runs");
 const ROUNDS_DIR = join(REPO_ROOT, "foundry", "rounds");
+const INSTALLED_ROOT = join(homedir(), ".claude", "skills");
 
 function today() {
 	return new Date().toISOString().slice(0, 10);
 }
 
-function lastReviewDate() {
+// Guarda un timestamp ISO completo, no solo la fecha: si esto corre dos
+// veces el mismo día, un corte a medianoche volvería a marcar como "nuevo"
+// todo lo escrito esa mañana (bug real, encontrado corriendo el script dos
+// veces seguidas antes de este fix).
+function lastReviewTimestamp() {
 	if (!existsSync(LAST_REVIEW_PATH)) return null;
 	return readFileSync(LAST_REVIEW_PATH, "utf8").trim() || null;
 }
@@ -73,9 +80,9 @@ function main() {
 		return;
 	}
 
-	const lastReview = lastReviewDate();
+	const lastReview = lastReviewTimestamp();
 	const cutoffMs = lastReview ? new Date(lastReview).getTime() : 0;
-	const periodLabel = lastReview ? `desde la última revisión (${lastReview})` : "desde siempre (primera revisión)";
+	const periodLabel = lastReview ? `desde la última revisión (${lastReview.slice(0, 10)})` : "desde siempre (primera revisión)";
 
 	console.log(`Revisión mensual — ${today()}`);
 	console.log(`Período: ${periodLabel}\n`);
@@ -86,17 +93,22 @@ function main() {
 	);
 
 	const rows = skillNames.map((name) => {
+		const channel = registry.skills[name].channel;
 		const newCases = filesNewerThan(CASES_DIR, cutoffMs).filter((f) => f.includes(`/${name}-`) || f.includes(`cases/${name}.md`));
 		const newRuns = filesNewerThan(join(RUNS_DIR, name), cutoffMs);
+		const expectedTarget = expectedTargetFor(REPO_ROOT, name, channel);
+		const symlink = classifySymlink(join(INSTALLED_ROOT, name), expectedTarget);
 		return {
 			name,
-			channel: registry.skills[name].channel,
+			channel,
 			maturity: registry.skills[name].maturity,
 			count90d: countByName.get(name) ?? 0,
 			newCases,
 			newRuns,
+			symlink,
 		};
 	});
+	const symlinkIssues = rows.filter((r) => r.symlink.status !== "ok");
 
 	const withNewEvidence = rows.filter((r) => r.newCases.length > 0 || r.newRuns.length > 0);
 	const withCountNoEvidence = rows.filter((r) => r.count90d > 0 && r.newCases.length === 0 && r.newRuns.length === 0);
@@ -104,8 +116,13 @@ function main() {
 	for (const r of rows) {
 		console.log(
 			`  ${r.name.padEnd(32)} canal=${r.channel.padEnd(11)} madurez=${r.maturity.padEnd(12)} skillkit(90d)=${r.count90d}` +
-				(r.newCases.length || r.newRuns.length ? `  <- ${r.newCases.length} caso(s), ${r.newRuns.length} run(s) nuevos` : ""),
+				(r.newCases.length || r.newRuns.length ? `  <- ${r.newCases.length} caso(s), ${r.newRuns.length} run(s) nuevos` : "") +
+				(r.symlink.status !== "ok" ? `  ⚠ symlink: ${r.symlink.status}` : ""),
 		);
+	}
+	if (symlinkIssues.length) {
+		console.warn(`\n⚠ ${symlinkIssues.length} symlink(s) con problema — no se corrigen acá, solo se reportan. Arreglalos con:`);
+		for (const r of symlinkIssues) console.warn(`  bun scripts/promote.mjs ${r.name} --channel ${r.channel}`);
 	}
 
 	const n = nextRoundNumber();
@@ -152,6 +169,18 @@ function main() {
 		}
 		lines.push("");
 	}
+	if (symlinkIssues.length) {
+		lines.push("## Symlinks con problema");
+		lines.push("");
+		lines.push(
+			"Chequeo de solo lectura (`classifySymlink`, ver `scripts/lib/symlinks.mjs`) sobre `~/.claude/skills/<nombre>` sin pasar por una promoción — cubre drift que `promote.mjs` no puede ver porque no se disparó una promoción para esa skill (borrado manual, copia restaurada, etc.). No se corrige acá.",
+		);
+		lines.push("");
+		for (const r of symlinkIssues) {
+			lines.push(`- \`${r.name}\`: ${r.symlink.status}${r.symlink.resolved ? ` (apunta a ${r.symlink.resolved})` : ""} — arreglar con \`bun scripts/promote.mjs ${r.name} --channel ${r.channel}\`.`);
+		}
+		lines.push("");
+	}
 	lines.push("## Decisión");
 	lines.push("");
 	lines.push("_Pendiente — completar después de revisar con el usuario. Si nada amerita cambio, dejar constancia explícita de \"sin cambios\" en vez de borrar esta ronda._");
@@ -159,7 +188,7 @@ function main() {
 
 	mkdirSync(roundDir, { recursive: true });
 	writeFileSync(join(roundDir, "README.md"), `${lines.join("\n")}\n`);
-	writeFileSync(LAST_REVIEW_PATH, `${today()}\n`);
+	writeFileSync(LAST_REVIEW_PATH, `${new Date().toISOString()}\n`);
 
 	console.log(`\nBorrador escrito en foundry/rounds/${slug}/README.md`);
 	console.log("Este script no comitea ni pushea — revisalo, completá la sección Decisión, y comiteá vos (o pedímelo en la sesión).");
