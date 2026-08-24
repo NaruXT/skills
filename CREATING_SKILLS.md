@@ -173,11 +173,15 @@ En resumen, el ciclo es:
 2. Cuando hay evidencia suficiente, se abre una ronda en
    `foundry/rounds/<NNN-nombre>/README.md` que la revisa y propone (o
    rechaza) el cambio de madurez o canal.
-3. Vos aprobás explícitamente la promoción — recién ahí se edita
-   `maturity.json` (y, si el canal pasa a `stable`, se mueve la carpeta de
-   `skills/.experimental/<nombre>/` a `skills/<nombre>/`).
+3. Vos aprobás explícitamente la promoción — recién ahí se corre
+   `bun scripts/promote.mjs <nombre> --channel ... --maturity ...`
+   (con `--dry-run` primero para ver el plan). El script edita
+   `maturity.json`, mueve la carpeta si el canal cruza a/desde `stable`, y
+   realinea el symlink instalado — no se hace ninguno de esos pasos a mano.
 
 Si una skill deja de usarse o un método mejor la reemplaza, no se borra: se
-mueve a `skills/deprecated/`, su entrada en `maturity.json` pasa a
-`maturity: "deprecated"` con una línea en `summary` explicando por qué, y la
-ronda que tomó esa decisión queda registrada igual que una promoción.
+promueve con `--maturity deprecated --reason "..."`, que la mueve a
+`foundry/deprecated/<nombre>/` (con un `DEPRECATION.md` al lado con la razón
+y la fecha), la saca del registro activo de `maturity.json`, y quita el
+symlink instalado. La ronda que tomó esa decisión queda registrada igual
+que una promoción.
