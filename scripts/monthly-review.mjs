@@ -26,6 +26,10 @@ const RUNS_DIR = join(REPO_ROOT, "foundry", "runs");
 const ROUNDS_DIR = join(REPO_ROOT, "foundry", "rounds");
 const INSTALLED_ROOT = join(homedir(), ".claude", "skills");
 
+function plural(n, singular, plural_) {
+	return n === 1 ? singular : plural_;
+}
+
 function today() {
 	return new Date().toISOString().slice(0, 10);
 }
@@ -165,7 +169,7 @@ function main() {
 		lines.push("## Conteo de SkillKit sin evidencia registrada — solo señal de adopción, no promueve nada por sí sola");
 		lines.push("");
 		for (const r of withCountNoEvidence) {
-			lines.push(`- \`${r.name}\`: ${r.count90d} invocaciones en 90d, sin caso ni run registrado. Si de verdad se usó sobre trabajo real, registrar el run/caso correspondiente antes de la próxima revisión.`);
+			lines.push(`- \`${r.name}\`: ${r.count90d} ${plural(r.count90d, "invocación", "invocaciones")} en 90d, sin caso ni run registrado. Si de verdad se usó sobre trabajo real, registrar el run/caso correspondiente antes de la próxima revisión.`);
 		}
 		lines.push("");
 	}
