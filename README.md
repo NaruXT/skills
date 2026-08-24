@@ -2,34 +2,24 @@
 
 Catálogo personal de skills de Claude Code.
 
-Cada skill empaqueta un procedimiento real que ya se usó al menos una vez en trabajo concreto, en vez de ser una idea de método sin probar.
+Cada skill empaqueta un procedimiento pensado para reutilizarse, no una idea suelta — pero eso no significa que ya esté probada: ver [`foundry/governance.md`](foundry/governance.md) para qué evidencia hace falta antes de confiar en una.
 La `description` de cada `SKILL.md` está escrita para el disparo automático: no resume qué hace la skill, dice qué palabras y situaciones deberían activarla.
 
-## Canales
+## Cómo funciona el sistema
 
-Las skills viven en un canal según cuánta evidencia real respalda su uso.
-Ninguna skill nace en `stable`.
-Una skill sube de canal solo cuando hay uso repetido sobre trabajo real, no por antigüedad ni por que "se ve completa".
+Este catálogo no es solo una estructura de carpetas — tiene reglas explícitas de cuándo una skill sube de madurez o de canal, qué evidencia hace falta, y quién aprueba el cambio. Esas reglas están en [`foundry/governance.md`](foundry/governance.md); léelo antes de mover una skill de canal. Cada decisión de promoción queda registrada en [`foundry/rounds/`](foundry/rounds/README.md), y la evidencia que la respalda en [`foundry/cases/`](foundry/cases/README.md).
 
-| Canal | Carpeta | Significado |
-|---|---|---|
-| Stable | `skills/<nombre>/` | Validada en múltiples usos reales, con evidencia consistente |
-| Candidate | `skills/.candidate/<nombre>/` | Un caso de uso real documentado, lista para más dogfooding enfocado |
-| Experimental | `skills/.experimental/<nombre>/` | Contrato de disparo y método coherentes, pero sin uso real repetido o sin comparación contra línea base |
+**Canal** (`stable` / `candidate` / `experimental`) responde "¿qué tan recomendada está su instalación?".
+**Madurez** (`experimental` → `dogfooded` → `evaluated` → `validated` / `deprecated`) responde "¿qué evidencia real la respalda?".
+Son dos ejes independientes: subir de madurez no mueve el canal solo, ni viceversa — ver `governance.md`.
 
-La fuente de verdad de canal y madurez es [`foundry/maturity.json`](foundry/maturity.json).
+Solo el canal `stable` tiene su propia carpeta (`skills/<nombre>/`). `candidate` y `experimental` comparten la misma carpeta (`skills/.experimental/<nombre>/`); la diferencia entre ellos vive únicamente en `foundry/maturity.json`, que es la fuente de verdad de ambos ejes. Cuando una skill llega a `stable`, su carpeta se mueve físicamente de `skills/.experimental/<nombre>/` a `skills/<nombre>/`.
 
-| Estado de madurez | Significado |
-|---|---|
-| `experimental` | Contrato de disparo y método coherentes, sin uso real |
-| `dogfooded` | Usada en trabajo real, sin comparación contra línea base |
-| `evaluated` | Comparada contra una línea base, pero la evidencia sigue incompleta |
-| `validated` | Efecto positivo repetible entre casos distintos, con revisión humana |
-| `deprecated` | Se conserva por trazabilidad, pero ya no se recomienda |
+Ninguna skill nace en `stable` ni en `validated`. Ninguna sube sola: cada promoción pasa por una ronda documentada y requiere tu aprobación explícita.
 
 ## Skills
 
-Todas las skills actuales están en `experimental` — recién migradas desde `~/.claude/skills`, sin ronda de promoción formal todavía.
+Las 7 skills migradas desde `~/.claude/skills` están hoy en canal `experimental`. La [Ronda 001](foundry/rounds/001-bootstrap-catalog/README.md) ya evaluó su evidencia retroactiva y propone subir la madurez de `cost-audit` y `network-traffic-assessment` a `dogfooded` — falta tu aprobación para que se refleje en `maturity.json`.
 
 ### `agent-architect`
 [agent-architect](skills/.experimental/agent-architect) entrevista en 6 fases secuenciales para especificar un agente de IA (subagente, skill, workflow de automatización) antes de escribir cualquier código o configuración. Nunca avanza a la siguiente pregunta con una respuesta ambigua, y nunca genera la especificación final con campos pendientes.
@@ -64,4 +54,4 @@ Este catálogo aún no se publica como paquete instalable. Para usar una skill d
 ln -s ~/Projects/skills/skills/.experimental/cost-audit ~/.claude/skills/cost-audit
 ```
 
-Cuando una skill suba a `candidate` o `stable`, el symlink cambia de carpeta (`skills/.candidate/<nombre>` o `skills/<nombre>`) y hay que rehacerlo.
+Cuando una skill suba a `stable`, la carpeta se mueve de `skills/.experimental/<nombre>` a `skills/<nombre>` (ver `foundry/governance.md`) y hay que rehacer el symlink. Subir a `candidate` no mueve la carpeta — solo cambia el campo `channel` en `foundry/maturity.json`.

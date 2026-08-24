@@ -156,21 +156,28 @@ específica y con más sinónimos.
 ## 9. Canal y madurez
 
 Toda skill nueva entra en `skills/.experimental/<nombre>/` y se registra en
-[`foundry/maturity.json`](foundry/maturity.json) con `maturity: "experimental"`.
-No se asume `stable` de entrada, sin importar cuán completo se vea el
-`SKILL.md`.
+[`foundry/maturity.json`](foundry/maturity.json) con `channel: "experimental"`
+y `maturity: "experimental"`. No se asume `stable` ni `dogfooded` de
+entrada, sin importar cuán completo se vea el `SKILL.md`.
 
-Sube de canal así:
+El criterio completo de cuándo y cómo sube una skill de madurez o de canal
+—qué evidencia hace falta, por qué son dos ejes independientes, quién
+aprueba el cambio— está en [`foundry/governance.md`](foundry/governance.md).
+No lo repitas de memoria acá: leelo antes de proponer una promoción.
 
-1. **`experimental` → `dogfooded`**: se usó al menos una vez sobre trabajo
-   real (no un caso inventado para probarla) y resolvió lo que decía que
-   iba a resolver. En ese momento también puede pasar de
-   `skills/.experimental/` a `skills/.candidate/`.
-2. **`dogfooded` → `evaluated`**: se comparó contra hacerlo sin la skill
-   (línea base), y quedó registro de qué cambió.
-3. **`evaluated` → `validated`**: el efecto se repitió en casos distintos,
-   no solo en el caso original.
+En resumen, el ciclo es:
+
+1. Se usa la skill sobre trabajo real y, si produce un resultado
+   verificable, se registra un caso en `foundry/cases/` (ver su
+   [README](foundry/cases/README.md) para el formato).
+2. Cuando hay evidencia suficiente, se abre una ronda en
+   `foundry/rounds/<NNN-nombre>/README.md` que la revisa y propone (o
+   rechaza) el cambio de madurez o canal.
+3. Vos aprobás explícitamente la promoción — recién ahí se edita
+   `maturity.json` (y, si el canal pasa a `stable`, se mueve la carpeta de
+   `skills/.experimental/<nombre>/` a `skills/<nombre>/`).
 
 Si una skill deja de usarse o un método mejor la reemplaza, no se borra: se
-mueve a `skills/deprecated/` y su entrada en `maturity.json` pasa a
-`maturity: "deprecated"`, con una línea en `summary` explicando por qué.
+mueve a `skills/deprecated/`, su entrada en `maturity.json` pasa a
+`maturity: "deprecated"` con una línea en `summary` explicando por qué, y la
+ronda que tomó esa decisión queda registrada igual que una promoción.
