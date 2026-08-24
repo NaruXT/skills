@@ -54,4 +54,25 @@ Este catálogo aún no se publica como paquete instalable. Para usar una skill d
 ln -s ~/Projects/skills/skills/.experimental/cost-audit ~/.claude/skills/cost-audit
 ```
 
-Cuando una skill suba a `stable`, la carpeta se mueve de `skills/.experimental/<nombre>` a `skills/<nombre>` (ver `foundry/governance.md`) y hay que rehacer el symlink. Subir a `candidate` no mueve la carpeta — solo cambia el campo `channel` en `foundry/maturity.json`.
+Cuando una skill suba a `stable`, la carpeta se mueve de `skills/.experimental/<nombre>` a `skills/<nombre>` (ver `foundry/governance.md`) y hay que rehacer el symlink. Subir a `candidate` no mueve la carpeta — solo cambia el campo `channel` en `foundry/maturity.json`. `scripts/promote.mjs` hace los dos pasos juntos — ver la sección de abajo.
+
+## Promover una skill
+
+No se edita `maturity.json` a mano. Una vez que decidiste el cambio (con o sin ronda formal en `foundry/rounds/`):
+
+```bash
+bun scripts/promote.mjs <skill> --channel stable --dry-run   # ver el plan primero
+bun scripts/promote.mjs <skill> --channel stable             # aplicar
+bun scripts/promote.mjs <skill> --maturity deprecated --reason "..."
+```
+
+Mueve la carpeta si corresponde, realinea el symlink instalado, y valida el catálogo al final. Ver `foundry/governance.md` para el criterio de cuándo corresponde.
+
+## Revisión mensual
+
+No corre sola — la dispara un recordatorio de calendario en tu celular (`skillkit` es local-first, así que un cron en la nube no puede leerlo; ver `foundry/skillkit-integration.md`). Cuando llegue la alerta:
+
+1. Abrí una sesión de Claude Code en este repo (`~/Projects/skills`).
+2. Pedí: **"corré la revisión mensual"**.
+3. Eso corre `bun scripts/monthly-review.mjs` (pull real de `skillkit stats`, diff contra `foundry/cases/`/`foundry/runs/` desde la última revisión) y deja un borrador de ronda en `foundry/rounds/<NNN>-revision-mensual-<fecha>/README.md` con la sección "Decisión" pendiente.
+4. Revisen juntos si algo amerita proponer un cambio de canal o madurez, completen la Decisión, y comiteen — el script nunca toca `maturity.json` ni corre `promote.mjs` por su cuenta.
