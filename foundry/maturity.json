@@ -43,6 +43,12 @@
       "channel": "experimental",
       "maturity": "experimental",
       "summary": "Analiza una imagen (screenshot, diseño, moodboard) y genera un documento de referencia de estilo visual: paleta de colores, sistema tipográfico, elementos distintivos. Sin caso de uso real documentado ni comparación contra línea base."
+    },
+    "shipcheck": {
+      "type": "audit",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Mentor técnico y de producto para lanzamientos de tiempo fijo (hackathon, proyecto propio, cliente): evalúa el repo local bajo 3 lentes (fit con el criterio de éxito, 'El Algoritmo' de 6 dimensiones, robustez de ingeniería) en 3 modos (scope/checkpoint/preship), más intervención proactiva vía una condición en el CLAUDE.md global del usuario. Especificada con agent-architect y validada empíricamente contra dos repos propios (farosos, pasoLibre-SAMU) antes de escribirse; sin caso de uso real registrado en foundry/cases/ ni comparación contra línea base todavía."
     }
   }
 }
