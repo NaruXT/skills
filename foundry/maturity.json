@@ -61,6 +61,12 @@
       "channel": "experimental",
       "maturity": "experimental",
       "summary": "Arma el andamiaje de archivos (.loop/HANDOFF.md, .loop/verify.sh, PROGRESS.md, forbidden-paths.txt) y las convenciones (guardarraíles numéricos y de irreversibilidad, protocolo Maker/Grader con capa determinista y de juicio, modo entrenamiento supervisado antes de soltar el loop, persistencia de estado vía hooks reales PreCompact/SessionStart) para correr /loop, /goal o /schedule de forma autónoma sin supervisión directa de cada cambio. Iterado sobre un boceto inicial del usuario incorporando un prompt real de producción (proyecto homi) y una charla de referencia sobre loop engineering, con dos hechos técnicos verificados explícitamente contra la documentación (mecanismo de hooks de compactación, mecánica real de /goal) tras detectar que la charla los transcribía mal; sin caso de uso real ni comparación contra línea base todavía."
+    },
+    "design-diagrams": {
+      "type": "documentation",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Diagrama, en etapa de planeación, el diseño de una feature o sistema que todavía no existe en código — sin requerir un repo real. Cubre 8 tipos (sequence, class, state, use-case, component, architecture, workflow, dataflow) inferidos por tema, en Mermaid puro validado contra el parser oficial. Especificada vía agent-architect y trazada como mapa de Wayfinder (.scratch/pre-development-diagram-skill/); comparte el mecanismo de validación con architecture-map vía skills/_shared/mermaid-validate/. Sin caso de uso real ni comparación contra línea base todavía."
     }
   }
 }
