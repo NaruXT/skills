@@ -31,6 +31,7 @@ function parseFrontmatter(text) {
 function markdownFiles(root) {
 	if (!existsSync(root)) return [];
 	return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
+		if (entry.isDirectory() && entry.name === "node_modules") return [];
 		const path = join(root, entry.name);
 		if (entry.isDirectory()) return markdownFiles(path);
 		return entry.name.endsWith(".md") ? [path] : [];
