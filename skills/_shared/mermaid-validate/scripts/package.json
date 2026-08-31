@@ -1,5 +1,5 @@
 {
-  "name": "architecture-map-validate",
+  "name": "mermaid-validate",
   "private": true,
   "type": "module",
   "dependencies": {

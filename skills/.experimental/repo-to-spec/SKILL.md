@@ -104,9 +104,10 @@ diagrama por completar el catálogo - cada uno es una hipótesis a confirmar
 contra el código.
 
 Aplicá también las reglas de sintaxis de
-[`../architecture-map/references/mermaid-syntax-rules.md`](../architecture-map/references/mermaid-syntax-rules.md)
-(frontmatter de tema oscuro, `;` sin escapar, `end` reservado, etc.) - son las
-que hacen que el diagrama pase la validación del Paso 5.
+`~/.claude/skills/_shared/mermaid-validate/references/mermaid-syntax-rules.md`
+(compartidas con `architecture-map` y `design-diagrams`: frontmatter de tema
+oscuro, `;` sin escapar, `end` reservado, etc.) - son las que hacen que el
+diagrama pase la validación del Paso 5.
 
 ## Paso 4: Redactar la spec
 
@@ -201,7 +202,7 @@ Por cada diagrama Mermaid escrito (el `overall-architecture` incluido),
 1. Escribí el texto Mermaid (sin el fence) a un archivo temporal.
 2. Corré:
    ```bash
-   node ~/.claude/skills/architecture-map/scripts/validate.mjs <temp.mmd>
+   node ~/.claude/skills/_shared/mermaid-validate/scripts/validate.mjs <temp.mmd>
    ```
 3. Si imprime `OK`: borrá el temporal, seguí.
 4. Si falla: leé el error (línea + qué esperaba el parser), corregí el
@@ -210,10 +211,11 @@ Por cada diagrama Mermaid escrito (el `overall-architecture` incluido),
 5. Borrá el archivo temporal.
 
 Si `mermaid`/`jsdom` no están instalados en
-`~/.claude/skills/architecture-map/scripts/` (prerequisito compartido con
-`architecture-map`), avisale al usuario que pida instalarlos ahí (`cd
-~/.claude/skills/architecture-map/scripts && bun install`) y advertí
-explícitamente en el reporte final que los diagramas no fueron validados.
+`~/.claude/skills/_shared/mermaid-validate/scripts/` (prerequisito compartido
+con `architecture-map` y `design-diagrams`), avisale al usuario que pida
+instalarlos ahí (`cd ~/.claude/skills/_shared/mermaid-validate/scripts && bun
+install`) y advertí explícitamente en el reporte final que los diagramas no
+fueron validados.
 
 ## Paso 6: Limpiar
 

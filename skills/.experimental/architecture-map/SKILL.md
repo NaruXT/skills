@@ -1,6 +1,6 @@
 ---
 name: architecture-map
-description: Explora un repo y genera/actualiza documentación de arquitectura basada en lo que realmente existe en el código — un docs/architecture.md con el diagrama de límites de producción como índice, más un diagrama por cada área que lo amerite (secuencia de un flujo real, clases del dominio real, ER del schema real, estado de una máquina de estados real) en docs/diagrams/*.md. Cada diagrama se valida contra el parser oficial de mermaid.js antes de darse por terminado, así se garantiza que renderiza en GitHub/GitLab/cualquier visor real, no solo que "se ve bien" en una herramienta de terceros. Usar cuando el usuario pida "generar los diagramas de este proyecto", "documentar la arquitectura del repo", "diagrama de secuencia de este flujo basado en el código", "diagrama de clases del dominio", "diagrama ER de la base de datos", "mapear la arquitectura", o algo equivalente a "un generador de diagramas de acuerdo a la información del proyecto" — no para diagramas a partir de una descripción verbal sin código detrás (para eso usar mermaid-skill).
+description: Explora un repo y genera/actualiza documentación de arquitectura basada en lo que realmente existe en el código — un docs/architecture.md con el diagrama de límites de producción como índice, más un diagrama por cada área que lo amerite (secuencia de un flujo real, clases del dominio real, ER del schema real, estado de una máquina de estados real) en docs/diagrams/*.md. Cada diagrama se valida contra el parser oficial de mermaid.js antes de darse por terminado, así se garantiza que renderiza en GitHub/GitLab/cualquier visor real, no solo que "se ve bien" en una herramienta de terceros. Usar cuando el usuario pida "generar los diagramas de este proyecto", "documentar la arquitectura del repo", "diagrama de secuencia de este flujo basado en el código", "diagrama de clases del dominio", "diagrama ER de la base de datos", "mapear la arquitectura", o algo equivalente a "un generador de diagramas de acuerdo a la información del proyecto" — no para diagramar un diseño que el código todavía no refleja, con o sin repo (para eso usar design-diagrams).
 ---
 
 # Architecture Map
@@ -28,16 +28,24 @@ es opcional: un diagrama que "se ve bien" en una vista previa de terceros
 puede tener sintaxis inválida para el parser real y renderizar roto
 ("Syntax error in text") donde de verdad importa.
 
+## Límite con design-diagrams
+
+Esta skill documenta lo que el código **ya hace** — se niega a diagramar sin
+evidencia real en el repo. Si el pedido es diagramar un diseño target que el
+código todavía no refleja (aunque el repo exista), o no hay repo en absoluto,
+eso es trabajo de `design-diagrams`, no de esta skill.
+
 ## Prerequisito
 
 El paso de validación necesita `mermaid` + `jsdom` instalados en
-`~/.claude/skills/architecture-map/scripts/` (setup manual, de una sola vez —
-la skill no instala nada sola). Antes de validar (Paso 5), corré el chequeo
-de [references/setup.md](references/setup.md). Si falla, avisale al usuario
-y detenete ahí sin instalar nada vos mismo — esa referencia tiene el mensaje
-exacto a usar y el porqué de `jsdom`. El resto de la skill funciona igual
-sin esto, pero sin garantía de que el Mermaid generado sea sintácticamente
-válido.
+`~/.claude/skills/_shared/mermaid-validate/scripts/` (setup manual, de una
+sola vez, compartido con `design-diagrams` — ninguna de las dos skills
+instala nada sola). Antes de validar (Paso 5), corré el chequeo de
+`~/.claude/skills/_shared/mermaid-validate/references/setup.md`. Si falla,
+avisale al usuario y detenete ahí sin instalar nada vos mismo — esa
+referencia tiene el mensaje exacto a usar y el porqué de `jsdom`. El resto de
+la skill funciona igual sin esto, pero sin garantía de que el Mermaid
+generado sea sintácticamente válido.
 
 ## Paso 0: Leer contexto de dominio si existe
 
@@ -84,10 +92,15 @@ Un proyecto chico puede terminar con solo `overall-architecture` y nada más.
 
 ## Paso 3: Reglas por tipo de diagrama
 
-Antes de dar cualquier diagrama por terminado, seguí las reglas generales y
-específicas por tipo de
-[references/mermaid-syntax-rules.md](references/mermaid-syntax-rules.md).
-No es opcional: son las reglas que hacen que el diagrama pase el Paso 5.
+Antes de dar cualquier diagrama por terminado, seguí dos juegos de reglas:
+
+1. Sintaxis (compartida con `design-diagrams`):
+   `~/.claude/skills/_shared/mermaid-validate/references/mermaid-syntax-rules.md`
+   — son las reglas que hacen que el diagrama pase el Paso 5.
+2. Fidelidad al código real (propia de esta skill):
+   [references/grounding-rules.md](references/grounding-rules.md).
+
+Ninguna de las dos es opcional.
 
 ## Paso 4: Redactar cada archivo
 
@@ -123,7 +136,7 @@ de darlo por terminado:
    temporal, por ejemplo en el directorio de scratch de la sesión.
 2. Corré:
    ```bash
-   node ~/.claude/skills/architecture-map/scripts/validate.mjs <temp.mmd>
+   node ~/.claude/skills/_shared/mermaid-validate/scripts/validate.mjs <temp.mmd>
    ```
 3. Si imprime `OK` (exit code 0): borrá el temporal, seguí. El diagrama está
    garantizado sintácticamente válido para el motor real de Mermaid.
@@ -147,7 +160,8 @@ fue validado y podría tener errores de sintaxis no detectados.
 
 Dos herramientas — abrir el diagrama en `mermaid.live` para que lo vea el
 usuario, o sacarle un screenshot headless para verlo vos mismo — descritas
-en [references/visual-verification.md](references/visual-verification.md).
+en `~/.claude/skills/_shared/mermaid-validate/references/visual-verification.md`
+(compartido con `design-diagrams`).
 **Ninguna corre sola en el Paso 5**, que sigue siendo solo `validate.mjs`.
 
 **Invocalas vos mismo, sin que te lo pidan, solo en estos tres casos** —
@@ -240,7 +254,8 @@ cómo extraer la comparación y el formato exacto. Si es la primera corrida
 
 | Archivo | Contenido |
 | --- | --- |
-| [references/setup.md](references/setup.md) | Por qué hace falta `jsdom`, cómo instalar, qué decir si falla el prerequisito (Prerequisito) |
-| [references/mermaid-syntax-rules.md](references/mermaid-syntax-rules.md) | Reglas de sintaxis generales y por tipo de diagrama (Paso 3) |
-| [references/visual-verification.md](references/visual-verification.md) | Mecánica de `open-live.mjs` y `screenshot.mjs` (Verificación visual) |
+| [references/grounding-rules.md](references/grounding-rules.md) | Reglas de fidelidad al código real por tipo de diagrama, propias de esta skill (Paso 3) |
 | [references/architecture-diff.md](references/architecture-diff.md) | Cómo armar la sección "Qué cambió desde la última corrida" (Paso 7) |
+| `~/.claude/skills/_shared/mermaid-validate/references/setup.md` | Por qué hace falta `jsdom`, cómo instalar, qué decir si falla el prerequisito — compartido con `design-diagrams` (Prerequisito) |
+| `~/.claude/skills/_shared/mermaid-validate/references/mermaid-syntax-rules.md` | Reglas de sintaxis Mermaid generales y por tipo — compartidas con `design-diagrams` (Paso 3) |
+| `~/.claude/skills/_shared/mermaid-validate/references/visual-verification.md` | Mecánica de `open-live.mjs` y `screenshot.mjs` — compartido con `design-diagrams` (Verificación visual) |

@@ -1,7 +1,16 @@
 # Reglas de sintaxis Mermaid
 
-Consultá esto al escribir cada diagrama (Paso 3 del `SKILL.md`), antes de darlo por
-terminado. Son las reglas que hacen que el diagrama pase la validación del Paso 5.
+Reglas mecánicas del parser/renderer de Mermaid — compartidas entre
+`architecture-map` y `design-diagrams`. Ninguna regla de acá depende de si el
+diagrama describe código real o un diseño propuesto: son hechos del motor
+`mermaid.js`, no de qué tan fiel es el contenido a su fuente. Cada skill
+consumidora tiene su propia regla de fidelidad de contenido (a código real,
+o a lo acordado en la conversación) en su propio `SKILL.md`/`references/` —
+no acá.
+
+Consultá esto al escribir cada diagrama, antes de darlo por terminado. Son
+las reglas que hacen que el diagrama pase la validación contra
+`mermaid.parse()` (`validate.mjs`).
 
 ## Todos los tipos — abrí cada diagrama con un frontmatter de tema oscuro
 
@@ -37,10 +46,6 @@ diagrama puntual queda así de roto en GitHub, es este bug — no hay que
 
 ## Todos los tipos — reglas generales
 
-- Nombres de nodos/participantes/clases en el mismo casing que usa el código
-  real (no inventes nombres bonitos si el código dice `OrderSvc`, usá
-  `OrderSvc`).
-- No agregues campos, métodos, o pasos que no viste en el código.
 - **Si un solo nodo/participante/clase termina con 5 o más conexiones
   (edges, mensajes, relaciones) apuntando hacia o desde él**, es la señal de
   que el diagrama va a quedar apretado ahí ("edge spaghetti") una vez
@@ -64,18 +69,17 @@ diagrama puntual queda así de roto en GitHub, es este bug — no hay que
   paréntesis, o corchetes — `["end"]`, `(end)` — para que no rompa el
   parseo. Es case-sensitive: `"End"`/`"END"` también evita el problema.
 - **`#` es carácter de comentario en `sequenceDiagram`** — un `#` crudo en un
-  mensaje (común si el código real referencia un issue/PR `#123`, o un color
-  hex) se come el resto de la línea. Usá la entidad `&num;` en su lugar.
+  mensaje (común si el texto referencia un issue/PR `#123`, o un color hex)
+  se come el resto de la línea. Usá la entidad `&num;` en su lugar.
 - **`classDiagram`: nombres de clase no alfanuméricos necesitan backticks.**
-  Un nombre real del código con `$`, `::`, `.`, u otro símbolo fuera de
-  letras/números/guiones/guion bajo rompe el parser a menos que lo envuelvas
-  en backticks: `` `Nombre::Con.Simbolos` ``. Relevante porque la regla de
-  "usar el nombre real del código" puede generar justo este caso.
+  Un nombre con `$`, `::`, `.`, u otro símbolo fuera de letras/números/
+  guiones/guion bajo rompe el parser a menos que lo envuelvas en backticks:
+  `` `Nombre::Con.Simbolos` ``.
 
-## `flowchart` (boundary, dependency-map, storage)
+## `flowchart`
 
 - IDs en kebab-case. Etiquetas de dos líneas: `api["API Worker\nPublic data plane"]`.
-- Agrupá por plataforma de despliegue con `subgraph`.
+- Agrupá por límite lógico (plataforma de despliegue, dominio, capa) con `subgraph`.
 - Toda flecha con etiqueta que explica el motivo, no solo que existe.
 - `flowchart LR` por defecto, `TD` si es más jerárquico. Si el diagrama tiene
   2+ `subgraph` grandes, tené en cuenta que el layout real (dagre, el que usa
@@ -83,35 +87,28 @@ diagrama puntual queda así de roto en GitHub, es este bug — no hay que
   el diagrama sea `LR` — no es un error, es como decide el motor real cuando
   no entran horizontalmente. No lo fuerces con hacks; si te preocupa,
   achicá la cantidad de nodos por subgraph.
-- `classDef` para resaltar: `external` (terceros), `entry` (puntos de entrada
-  públicos), `store` (almacenamiento persistente), `concern` (riesgo conocido).
+- `classDef` sugerido para resaltar semántica común a ambas skills: `external`
+  (terceros/fuera del sistema), `entry` (puntos de entrada), `store`
+  (almacenamiento persistente), `concern` (riesgo o decisión pendiente).
 
 ## `sequenceDiagram`
 
-- Un `participant` por servicio/capa real involucrada, en el orden en que
-  aparecen en el flujo.
-- Mostrá el camino de error relevante (ej. credenciales inválidas), no solo
-  el happy path, si el código lo maneja explícitamente.
+- Un `participant` por actor/servicio/capa real involucrada, en el orden en
+  que aparecen en el flujo.
 - Mensajes con el nombre real de la operación/endpoint, no una paráfrasis vaga.
 
 ## `classDiagram`
 
-- Solo relaciones que el código expresa (herencia real, campo que referencia
-  otra clase, interfaz implementada) — no relaciones "conceptuales" inventadas.
-- Mostrá visibilidad (`+`/`-`) solo si el lenguaje del proyecto la tiene.
+- Mostrá visibilidad (`+`/`-`) solo si la convención del proyecto/diseño la usa.
 
 ## `erDiagram`
 
-- Cardinalidad tal como está en la migración/modelo (`||--o{`, etc.), no una
-  suposición.
+- Cardinalidad explícita (`||--o{`, etc.), nunca ambigua.
 - Solo columnas relevantes para entender la relación, no el schema completo
   campo por campo si la tabla es ancha — decilo en la nota, no en el diagrama.
 
 ## `stateDiagram-v2`
 
-- Un estado por valor real del enum. Una transición por cada función/rama de
-  código que efectivamente cambia el estado — no inventes transiciones
-  "lógicas" que el código no implementa.
 - Soporta `classDef`/`class`/`:::` igual que `flowchart` (no aplica a
   estados start/end ni compuestos) — usá la misma paleta de `entry`/
   `external`/`store`/`concern` si el estado lo amerita, para consistencia

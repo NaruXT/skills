@@ -44,7 +44,7 @@ ${code}
 </body></html>
 `;
 
-const tempHtml = join(tmpdir(), `architecture-map-screenshot-${Date.now()}.html`);
+const tempHtml = join(tmpdir(), `mermaid-validate-screenshot-${Date.now()}.html`);
 writeFileSync(tempHtml, html, 'utf-8');
 
 const CHROME_CANDIDATES = [
