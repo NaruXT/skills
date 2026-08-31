@@ -49,6 +49,18 @@
       "channel": "experimental",
       "maturity": "experimental",
       "summary": "Mentor técnico y de producto para lanzamientos de tiempo fijo (hackathon, proyecto propio, cliente): evalúa el repo local bajo 3 lentes (fit con el criterio de éxito, 'El Algoritmo' de 6 dimensiones, robustez de ingeniería) en 3 modos (scope/checkpoint/preship), más intervención proactiva vía una condición en el CLAUDE.md global del usuario. Especificada con agent-architect y validada empíricamente contra dos repos propios (farosos, pasoLibre-SAMU) antes de escribirse; sin caso de uso real registrado en foundry/cases/ ni comparación contra línea base todavía."
+    },
+    "repo-to-spec": {
+      "type": "documentation",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "A partir de una URL pública de GitHub (repo o PR) clona el código localmente y hace ingeniería inversa de su comportamiento actual a un único documento Markdown con la plantilla de /to-spec reinterpretada, con diagramas Mermaid validados contra el parser oficial. Comparte scripts y convenciones de diagramas con architecture-map; sin caso de uso real registrado en foundry/cases/ ni comparación contra línea base todavía."
+    },
+    "setup-loop-engineering": {
+      "type": "scaffolding",
+      "channel": "experimental",
+      "maturity": "experimental",
+      "summary": "Arma el andamiaje de archivos (.loop/HANDOFF.md, .loop/verify.sh, PROGRESS.md, forbidden-paths.txt) y las convenciones (guardarraíles numéricos y de irreversibilidad, protocolo Maker/Grader con capa determinista y de juicio, modo entrenamiento supervisado antes de soltar el loop, persistencia de estado vía hooks reales PreCompact/SessionStart) para correr /loop, /goal o /schedule de forma autónoma sin supervisión directa de cada cambio. Iterado sobre un boceto inicial del usuario incorporando un prompt real de producción (proyecto homi) y una charla de referencia sobre loop engineering, con dos hechos técnicos verificados explícitamente contra la documentación (mecanismo de hooks de compactación, mecánica real de /goal) tras detectar que la charla los transcribía mal; sin caso de uso real ni comparación contra línea base todavía."
     }
   }
 }
