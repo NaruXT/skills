@@ -143,7 +143,13 @@ de darlo por terminado:
    de línea y qué esperaba. Corregí el `.mmd` (el error más común es un `;`
    dentro de un label — ver Paso 3) y volvé a validar. No copies el error
    crudo al `.md` ni al usuario sin antes intentar arreglarlo vos mismo.
-5. Borrá el archivo temporal.
+5. **Máximo 2 rondas de corrección por diagrama.** Si después de dos
+   intentos seguidos el error persiste o no mejora, dejá de reintentar:
+   marcá ese diagrama como no validado, guardá el mensaje de error crudo del
+   parser (línea + qué esperaba) para incluirlo tal cual en el Paso 8, y
+   seguí con el resto de los diagramas — no reintentes indefinidamente sobre
+   uno solo.
+6. Borrá el archivo temporal.
 
 Si el chequeo de prerequisito (ver arriba) falló, saltá este paso pero
 **avisale explícitamente al usuario en el reporte final** que el diagrama no
@@ -173,7 +179,30 @@ la regla de texto del Paso 3, que es gratis. Chequear visualmente cada
 diagrama "por las dudas" gasta tokens de imagen rehaciendo lo que la regla
 de texto ya resuelve sin costo.
 
-## Paso 6: Escribir o actualizar
+## Paso 6: Auditar fidelidad de las citas al código real
+
+El Paso 1 explora el repo **una sola vez**. Entre esa exploración y el
+momento de escribir el `.md` final puede pasar suficiente trabajo (redactar,
+corregir sintaxis) como para que una cita quede vieja sin que nadie lo note.
+Antes de dar un diagrama por terminado, revisá cada nombre **concreto y
+verificable** que haya quedado citado en su texto o en su sección `## Notes`
+— una ruta de archivo, un nombre de clase/tipo, una tabla, una función — y
+confirmá que sigue existiendo tal como se describe:
+
+```bash
+grep -n "<nombre>" <archivo-citado>
+# o, si querés confirmar contra el commit exacto que estás documentando:
+git show HEAD:<ruta> | grep -n "<nombre>"
+```
+
+Si algo ya no coincide (el archivo se movió, la clase se renombró, la
+columna ya no existe), corregí la cita antes de escribir el `.md` — no dejes
+una referencia rota solo porque así se veía en algún momento de la
+exploración. No hace falta auditar cada palabra: solo los nombres concretos
+y verificables, no las etiquetas descriptivas genéricas ("Servicio de
+autenticación", "Capa de datos").
+
+## Paso 7: Escribir o actualizar
 
 Envolvé la parte generada de cada `.md` entre marcadores:
 
@@ -194,13 +223,41 @@ Si al re-explorar detectás que el material que justificaba un
 tabla se eliminó), **no borres el archivo solo** — decíselo al usuario y
 preguntá si lo eliminás o lo dejás como referencia histórica.
 
-## Paso 7: Reportar
+**Si estás actualizando** un `docs/architecture.md` que ya tiene marcadores
+de una corrida anterior, antes de reemplazar el bloque generado extraé la
+lista de nodos y edges del `flowchart` de `overall-architecture` viejo
+(parseo simple de línea, no hace falta un parser de grafos) y comparala
+contra la del nuevo. Agregá o actualizá una sección `## Qué cambió desde la
+última corrida`, como lista estructurada, no como párrafo de prosa libre:
+
+```markdown
+## Qué cambió desde la última corrida
+
+- Agregado: `<nodo o edge nuevo>`
+- Eliminado: `<nodo o edge que ya no está>`
+- Renombrado: `<nombre viejo>` → `<nombre nuevo>`
+```
+
+Esto aplica solo al `flowchart` de `overall-architecture` — es el único
+diagrama que toda corrida genera siempre, así que es el único con una línea
+base estable para diffear. Los diagramas de detalle no llevan esta sección:
+el Paso 2 puede decidir generarlos o no en cada corrida según lo que el
+código justifique en ese momento, así que no hay garantía de que exista una
+versión anterior comparable. Si es la primera corrida (no hay versión
+previa), omití la sección por completo.
+
+## Paso 8: Reportar
 
 - Lista de archivos creados/actualizados/sin cambios.
-- Si algún diagrama no pudo validarse (prerequisito faltante) o falló la
-  validación y no se pudo corregir: decilo explícito, con el error puntual.
-- Si fue una actualización: resumen de 3-4 líneas de qué cambió, no el diff
-  completo.
+- Si algún diagrama no pudo validarse (prerequisito faltante, o agotó las 2
+  rondas de corrección del Paso 5): decilo explícito, con el error puntual
+  del parser.
+- Si el Paso 6 corrigió alguna cita desactualizada (archivo movido, nombre
+  renombrado), decilo — es información que el usuario probablemente quiere
+  saber aunque no haya pedido una auditoría.
+- Si fue una actualización de `docs/architecture.md`: remití a la sección
+  `## Qué cambió desde la última corrida` que armaste en el Paso 7 — no la
+  repitas en prosa acá.
 - Si el Paso 2 no encontró material para ningún diagrama de detalle, decilo
   explícito ("solo generé el boundary diagram; no encontré un flujo,
   modelo de dominio, schema, o máquina de estados con suficiente sustancia
