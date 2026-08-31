@@ -32,19 +32,12 @@ puede tener sintaxis inválida para el parser real y renderizar roto
 
 El paso de validación necesita `mermaid` + `jsdom` instalados en
 `~/.claude/skills/architecture-map/scripts/` (setup manual, de una sola vez —
-la skill no instala nada sola). Antes de validar (Paso 5), verificá:
-
-```bash
-node -e "require.resolve('mermaid', {paths: ['/Users/josueroquecastillo/.claude/skills/architecture-map/scripts']}); require.resolve('jsdom', {paths: ['/Users/josueroquecastillo/.claude/skills/architecture-map/scripts']})" 2>&1
-```
-
-Si falla, decile al usuario "Falta `mermaid` instalado — corré `cd
-~/.claude/skills/architecture-map/scripts && bun install` y volvé a pedirme
-esto" y detenete ahí — **no lo instales vos**. El resto de la skill funciona
-igual sin esto, pero sin garantía de que el Mermaid generado sea
-sintácticamente válido; avisale eso al usuario si seguís sin poder validar.
-Ver [references/setup.md](references/setup.md) para el porqué de `jsdom` y
-más detalle de troubleshooting.
+la skill no instala nada sola). Antes de validar (Paso 5), corré el chequeo
+de [references/setup.md](references/setup.md). Si falla, avisale al usuario
+y detenete ahí sin instalar nada vos mismo — esa referencia tiene el mensaje
+exacto a usar y el porqué de `jsdom`. El resto de la skill funciona igual
+sin esto, pero sin garantía de que el Mermaid generado sea sintácticamente
+válido.
 
 ## Paso 0: Leer contexto de dominio si existe
 
@@ -91,15 +84,10 @@ Un proyecto chico puede terminar con solo `overall-architecture` y nada más.
 
 ## Paso 3: Reglas por tipo de diagrama
 
-Antes de dar cualquier diagrama por terminado, seguí las reglas de
-[references/mermaid-syntax-rules.md](references/mermaid-syntax-rules.md):
-frontmatter de tema oscuro obligatorio, reglas generales de sintaxis
-(`;` sin escapar, `end` como palabra reservada, `#` como comentario en
-`sequenceDiagram`, backticks en nombres de clase no alfanuméricos, la
-regla de "5+ conexiones = edge spaghetti"), y las reglas específicas por
-tipo (`flowchart`, `sequenceDiagram`, `classDiagram`, `erDiagram`,
-`stateDiagram-v2`). No es opcional: son las reglas que hacen que el
-diagrama pase el Paso 5.
+Antes de dar cualquier diagrama por terminado, seguí las reglas generales y
+específicas por tipo de
+[references/mermaid-syntax-rules.md](references/mermaid-syntax-rules.md).
+No es opcional: son las reglas que hacen que el diagrama pase el Paso 5.
 
 ## Paso 4: Redactar cada archivo
 
@@ -224,27 +212,12 @@ tabla se eliminó), **no borres el archivo solo** — decíselo al usuario y
 preguntá si lo eliminás o lo dejás como referencia histórica.
 
 **Si estás actualizando** un `docs/architecture.md` que ya tiene marcadores
-de una corrida anterior, antes de reemplazar el bloque generado extraé la
-lista de nodos y edges del `flowchart` de `overall-architecture` viejo
-(parseo simple de línea, no hace falta un parser de grafos) y comparala
-contra la del nuevo. Agregá o actualizá una sección `## Qué cambió desde la
-última corrida`, como lista estructurada, no como párrafo de prosa libre:
-
-```markdown
-## Qué cambió desde la última corrida
-
-- Agregado: `<nodo o edge nuevo>`
-- Eliminado: `<nodo o edge que ya no está>`
-- Renombrado: `<nombre viejo>` → `<nombre nuevo>`
-```
-
-Esto aplica solo al `flowchart` de `overall-architecture` — es el único
-diagrama que toda corrida genera siempre, así que es el único con una línea
-base estable para diffear. Los diagramas de detalle no llevan esta sección:
-el Paso 2 puede decidir generarlos o no en cada corrida según lo que el
-código justifique en ese momento, así que no hay garantía de que exista una
-versión anterior comparable. Si es la primera corrida (no hay versión
-previa), omití la sección por completo.
+de una corrida anterior, agregá o actualizá una sección `## Qué cambió
+desde la última corrida` comparando el `flowchart` de `overall-architecture`
+viejo contra el nuevo — ver
+[references/architecture-diff.md](references/architecture-diff.md) para
+cómo extraer la comparación y el formato exacto. Si es la primera corrida
+(no hay versión previa), omití la sección por completo.
 
 ## Paso 8: Reportar
 
@@ -262,3 +235,12 @@ previa), omití la sección por completo.
   explícito ("solo generé el boundary diagram; no encontré un flujo,
   modelo de dominio, schema, o máquina de estados con suficiente sustancia
   para un diagrama aparte") en vez de forzar contenido débil.
+
+## Referencias
+
+| Archivo | Contenido |
+| --- | --- |
+| [references/setup.md](references/setup.md) | Por qué hace falta `jsdom`, cómo instalar, qué decir si falla el prerequisito (Prerequisito) |
+| [references/mermaid-syntax-rules.md](references/mermaid-syntax-rules.md) | Reglas de sintaxis generales y por tipo de diagrama (Paso 3) |
+| [references/visual-verification.md](references/visual-verification.md) | Mecánica de `open-live.mjs` y `screenshot.mjs` (Verificación visual) |
+| [references/architecture-diff.md](references/architecture-diff.md) | Cómo armar la sección "Qué cambió desde la última corrida" (Paso 7) |
