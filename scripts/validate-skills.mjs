@@ -11,7 +11,7 @@ const MATURITY_STATES = new Set([
 	"deprecated",
 ]);
 const DISTRIBUTION_CHANNELS = new Set(["stable", "candidate", "experimental"]);
-const MAX_SKILL_LINES = 120;
+const MAX_SKILL_LINES = 500;
 const errors = [];
 const warnings = [];
 
