@@ -2,8 +2,13 @@
 
 Guía de referencia personal — no es una skill en sí (por eso no está en su
 propia carpeta con `SKILL.md`, así Claude Code no la lista como una skill
-más). Está basada en ejemplos reales de este catálogo y en la skill
-`cost-audit` que se armó en la sesión de `fb-question-detector`.
+más). Está basada en ejemplos reales de este catálogo, en la skill
+`cost-audit` que se armó en la sesión de `fb-question-detector`, y en el
+patrón de escritura observado en dos catálogos reales ajenos:
+[Railly/skills](https://github.com/Railly/skills) y
+[crafter-station/skills](https://github.com/crafter-station/skills) (este
+último deriva a su vez de la guía oficial de Anthropic para
+`skill-creator`). De ahí salen las secciones 5.1, 5.2 y 9 de más abajo.
 
 ## 1. Qué es
 
@@ -29,6 +34,14 @@ más específica al directorio donde estás trabajando.
 
 ## 3. Estructura mínima
 
+Antes de escribir nada: revisá si esta skill va a consumir el output de
+una skill ya existente del catálogo, o si una skill ya existente debería
+consumir el suyo. Si hay un límite compartido así, la cross-referencia se
+agrega en las dos direcciones en el mismo cambio - se edita también la
+skill vieja, no solo la que estás creando. Ver
+[`foundry/skill-writing-patterns.md`](foundry/skill-writing-patterns.md#6-citá-a-la-skill-hermana-cuando-hay-un-límite-compartido)
+para el criterio completo y el caso abierto que ya está anotado.
+
 ```
 skills/.experimental/mi-skill/
   SKILL.md          ← obligatorio
@@ -41,6 +54,16 @@ skills/.experimental/mi-skill/
 Alcanza con el `SKILL.md` solo. Los scripts/referencias solo hacen falta si
 la skill necesita ejecutar algo determinístico (parsear datos, generar un
 archivo) en vez de que todo lo razone el modelo en el momento.
+
+**Qué no meter en la carpeta de la skill:** ni `README.md`, ni
+`CHANGELOG.md`, ni `INSTALLATION_GUIDE.md`, ni `QUICK_REFERENCE.md`, ni
+ningún otro archivo de documentación "sobre" la skill. La carpeta es para
+lo que el modelo necesita para ejecutar la tarea, no para documentación
+dirigida a un humano que la esté auditando - eso vive en `foundry/cases/`,
+en la ronda que la evaluó, o en este mismo archivo. Es un error real que
+aparece seguido cuando se generan skills en lote (crafter-station lo marca
+explícito en su guía de `skill-gen`, ya deprecada): agrega ruido al
+contexto sin agregar capacidad.
 
 ## 4. El frontmatter
 
@@ -77,6 +100,42 @@ No agregues `allowed-tools` a menos que quieras específicamente restringir
 la skill (ej. una skill de solo-lectura que no debería poder escribir
 archivos ni ejecutar comandos arbitrarios).
 
+```yaml
+compatibility: Requiere que 'radius' esté en PATH para el análisis de impacto;
+                sin él, el paso 2 se salta en silencio.
+```
+
+`compatibility` (patrón tomado de `Railly/skills`) documenta un
+prerrequisito de runtime que no es una herramienta de Claude Code (un CLI
+externo que debe estar instalado, una versión mínima, la necesidad de que
+el modelo que revisa sea distinto del que escribió lo que revisa). Solo
+agregalo si la skill realmente depende de algo así - no lo uses como lugar
+para poner contexto general.
+
+```yaml
+version: 0.1.0
+```
+
+`version` (patrón de `crafter-station/skills`) no es lo mismo que la
+madurez de [`maturity.json`](foundry/maturity.json) - son dos ejes
+distintos. `version` responde "cuánto cambió el método de este documento
+puntual", `maturity` responde "cuánta evidencia lo respalda". No se
+inferá uno del otro.
+
+Semver de documento, no de software:
+- **major**: cambió el flujo (se agregó/sacó un paso, se reordenó algo que
+  cambia el resultado de seguirlo).
+- **minor**: se agregó material o se corrigió una afirmación, sin cambiar
+  el flujo.
+- **patch**: wording, links, typos.
+
+Se mantiene a mano al editar el `SKILL.md` - no hay script que lo bumpee
+todavía (a diferencia de `maturity.json`, que sí se edita solo vía
+`scripts/promote.mjs`). Eso es una asunción de riesgo real: nada impide
+olvidarse de subirlo. Si con el tiempo se nota que se olvida seguido, ahí
+se justifica un chequeo en `validate-skills.mjs` que lo exija en cada
+commit que toque el cuerpo - no antes.
+
 ## 5. El cuerpo (las instrucciones)
 
 Es markdown normal, dirigido al modelo, no al usuario final. Lo que
@@ -109,7 +168,89 @@ funciona bien en la práctica:
 - **Blast radius**: si la skill puede tocar producción, hacer un deploy, o
   llamar APIs externas reales, escribí explícitamente que hay que confirmar
   con el usuario antes — no asumas que se va a inferir del contexto general
-  de "cuidado con acciones riesgosas".
+  de "cuidado con acciones riesgosas". Si además la skill toca un sistema
+  externo, datos de un cliente, o tiene un límite de alcance no obvio
+  (qué no implementa, qué no valida), cerrá con una sección `## Límites`
+  aparte con esas afirmaciones - no alcanza con la advertencia de blast
+  radius sola, que es sobre *acciones* riesgosas, no sobre *alcance*. Ver
+  [`foundry/skill-writing-patterns.md`](foundry/skill-writing-patterns.md#4-sección--límites-de-cierre)
+  regla 4.
+- **Generalizá una barrera por su mecanismo, no por el vendor que la
+  implementa** ("CDN challenge page", no "Cloudflare"), y si citás un caso
+  real como evidencia de una regla, decí el conteo real si hay más de uno,
+  o cobertura explícita si hay uno solo ("en el caso de origen, X" - no
+  "casi siempre X" ni "el patrón típico es X"). Ver
+  [`foundry/skill-writing-patterns.md`](foundry/skill-writing-patterns.md)
+  reglas 1 y 2 para el detalle y ejemplos reales.
+- **Forma imperativa**: escribí las instrucciones como comandos ("leé
+  `X`", "corré `Y`"), no como descripciones de tercera persona ("el modelo
+  debería leer X"). Es el estilo que usa la guía oficial de skill-creator
+  de Anthropic, y hace cada paso más corto y menos ambiguo sobre quién
+  actúa.
+- **Nunca repitas "cuándo usar esta skill" en el cuerpo.** El body solo se
+  carga *después* de que la skill ya disparó - una sección tipo "## Cuándo
+  usar" ahí adentro no ayuda a Claude a decidir si aplica, porque para
+  cuando la lee ya decidió que sí. Toda la información de disparo va en
+  `description` (sección 4). Si te encontrás escribiendo eso en el cuerpo,
+  es señal de que en realidad falta en la `description`.
+
+### 5.1 Grados de libertad
+
+No todos los pasos merecen el mismo nivel de prescripción. Elegí el nivel
+según qué tan frágil o variable es la tarea:
+
+| Nivel | Cuándo usarlo | Se ve así |
+|---|---|---|
+| **Alto** (instrucciones en prosa) | Hay varias formas válidas de resolverlo, o depende de contexto que solo el modelo puede evaluar en el momento | "Revisá el diff y elegí qué lentes de review aplican según qué tocó" |
+| **Medio** (pseudocódigo o script con parámetros) | Existe un patrón preferido, pero hay variación aceptable | "Corré `scripts/check.sh <archivo>` - si falla, ajustá el umbral con `--threshold`" |
+| **Bajo** (script específico, pocos parámetros) | La operación es frágil, propensa a error, o necesita un orden exacto que no se puede improvisar | "Ejecutá exactamente `scripts/promote.mjs <skill> --channel X`, nunca lo hagas a mano" |
+
+Pensalo como un camino: un puente angosto con precipicios necesita
+barandas específicas (bajo), un campo abierto admite muchas rutas (alto).
+Mezclar los niveles al revés - prosa donde hace falta un script exacto, o
+un script rígido donde hace falta juicio - es la causa más común de una
+skill que falla en producción pero se veía bien en la revisión.
+
+**Esto es una herramienta para vos mientras escribís, no un rótulo para el
+resultado final.** Ninguna skill madura real (revisadas: `surface-recon`,
+`cli-build`) anota "Grado de libertad: alto" en su propio texto - el
+nivel se transmite implícito en cuánto detalle deja la prosa. Si escribís
+la etiqueta literal en el `SKILL.md` que vas a entregar, sacala antes de
+darla por terminada.
+
+### 5.2 Presupuesto de extensión (progressive disclosure)
+
+Claude carga la skill en tres niveles, y cada uno cuesta contexto en un
+momento distinto:
+
+1. **Frontmatter** (`name` + `description`): siempre en contexto, en toda
+   sesión, dispare o no la skill. Por eso tiene que ser corto.
+2. **Cuerpo del `SKILL.md`**: se carga completo cuando la skill dispara.
+   Mantenelo bajo ~500 líneas - si se te va de ahí, es señal de que hay
+   contenido que pertenece a `references/`, no al cuerpo.
+3. **`references/` y `scripts/`**: se cargan solo si el cuerpo los cita
+   explícitamente y el modelo decide que hacen falta para ese caso
+   puntual.
+
+Reglas prácticas para cuando el cuerpo crece:
+
+- Movés a `references/<tema>.md` el contenido específico de una variante
+  (un stack, un proveedor, un formato) que no aplica a todos los casos -
+  el cuerpo se queda con el flujo general y la lógica de selección ("si es
+  AWS, leé `references/aws.md`").
+- Las referencias van a **un solo nivel de profundidad** desde el
+  `SKILL.md` - todas se citan directo desde ahí, nunca una referencia que
+  cita a otra referencia.
+- Si una referencia pasa las ~100 líneas, ponele un índice arriba del
+  todo, así el modelo ve el alcance completo antes de decidir si le sirve
+  leerla entera o solo una sección.
+- **Si terminás con dos o más archivos en `references/`, cerrá el
+  `SKILL.md` con una tabla `## Referencias`** que liste cada archivo con
+  una cláusula de qué contiene (o cuándo consultarlo, mejor todavía) - no
+  alcanza con haberlos citado inline en el paso que los usa. Es lo que le
+  permite a alguien que abre el archivo por primera vez ver el alcance
+  completo sin leer los pasos enteros antes. Con un solo archivo en
+  `references/` no hace falta la tabla, la cita inline alcanza.
 
 ## 6. Cómo se invoca
 
@@ -153,6 +294,17 @@ y fijate que aparezca en la lista de skills disponibles con la
 calzar, la `description` es probablemente el problema — hacela más
 específica y con más sinónimos.
 
+**Técnica manual para afinar la `description`:** antes de darla por
+terminada, escribí a mano 2-3 frases que deberían dispararla y 2-3 parecidas
+que no deberían (un pedido vecino pero distinto). Probalas una por una en
+una sesión nueva y fijate si el resultado coincide con lo esperado. Esto es
+una versión deliberadamente liviana y a mano de lo que `Railly/skills` hace
+con un archivo `evals/triggers.json` por skill y corre de forma
+automatizada - acá no vale la pena automatizarlo (ver la limitación
+reconocida en [`governance.md`](foundry/governance.md)), pero el ejercicio
+de escribir los casos negativos igual sirve para encontrar una
+`description` demasiado ancha antes de que dispare donde no debía.
+
 ## 9. Canal y madurez
 
 Toda skill nueva entra en `skills/.experimental/<nombre>/` y se registra en
@@ -185,3 +337,16 @@ promueve con `--maturity deprecated --reason "..."`, que la mueve a
 y la fecha), la saca del registro activo de `maturity.json`, y quita el
 symlink instalado. La ronda que tomó esa decisión queda registrada igual
 que una promoción.
+
+## 10. Patrones de skills maduras reales
+
+Las secciones de arriba son el procedimiento mecánico. Para reglas de más
+fondo (cómo generalizar evidencia sin inflar un caso único, cómo nombrar
+una barrera sin atarse a un vendor, cuándo un patrón de fallo merece su
+propio archivo catalogado, la sección `## Límites` de cierre) - leé
+[`foundry/skill-writing-patterns.md`](foundry/skill-writing-patterns.md)
+antes de escribir una skill que se apoye en casos reales o toque un
+sistema externo con fallos variables (red, auth, rate limits). No lo
+repitas de memoria acá, por la misma razón que no se repite el criterio
+de promoción: son reglas que van a seguir evolucionando con cada skill
+nueva que las ponga a prueba.
