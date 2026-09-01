@@ -1,6 +1,6 @@
 ---
 name: architecture-map
-description: Explora un repo y genera/actualiza documentación de arquitectura basada en lo que realmente existe en el código — un docs/architecture.md con el diagrama de límites de producción como índice, más un diagrama por cada área que lo amerite (secuencia de un flujo real, clases del dominio real, ER del schema real, estado de una máquina de estados real) en docs/diagrams/*.md. Cada diagrama se valida contra el parser oficial de mermaid.js antes de darse por terminado, así se garantiza que renderiza en GitHub/GitLab/cualquier visor real, no solo que "se ve bien" en una herramienta de terceros. Usar cuando el usuario pida "generar los diagramas de este proyecto", "documentar la arquitectura del repo", "diagrama de secuencia de este flujo basado en el código", "diagrama de clases del dominio", "diagrama ER de la base de datos", "mapear la arquitectura", o algo equivalente a "un generador de diagramas de acuerdo a la información del proyecto" — no para diagramar un diseño que el código todavía no refleja, con o sin repo (para eso usar design-diagrams).
+description: Explora un repo y genera/actualiza documentación de arquitectura basada en lo que realmente existe en el código — un docs/architecture.md con el diagrama de límites de producción como índice, más un diagrama por cada área que lo amerite (secuencia de un flujo real, clases del dominio real, ER del schema real, estado de una máquina de estados real, topología de infraestructura real en D2) en docs/diagrams/*.md. Cada diagrama Mermaid se valida contra el parser oficial de mermaid.js, y el diagrama de infraestructura contra el compilador real de D2, antes de darse por terminado, así se garantiza que renderiza en GitHub/GitLab/cualquier visor real (o, para D2, que compila de verdad), no solo que "se ve bien" en una herramienta de terceros. Usar cuando el usuario pida "generar los diagramas de este proyecto", "documentar la arquitectura del repo", "diagrama de secuencia de este flujo basado en el código", "diagrama de clases del dominio", "diagrama ER de la base de datos", "diagrama de infraestructura en D2", "mapear la arquitectura", o algo equivalente a "un generador de diagramas de acuerdo a la información del proyecto" — no para diagramar un diseño que el código todavía no refleja, con o sin repo (para eso usar design-diagrams).
 ---
 
 # Architecture Map
@@ -10,23 +10,31 @@ una descripción inventada. Si no encontrás en el repo el material que
 justifique un tipo de diagrama, no lo generás — no rellenás con ejemplos
 genéricos.
 
-Salida: **solo `.md`**, nada más. No hay SVG, no hay HTML, no hay render
-paralelo — la calidad tiene que estar en el propio texto Mermaid, porque
-GitHub/GitLab/el editor de quien lo lea van a renderizar exactamente ese
-texto con su propio motor, no con ninguna herramienta de terceros.
+Salida: para los diagramas Mermaid, **solo `.md`**, nada más. No hay SVG, no
+hay HTML, no hay render paralelo — la calidad tiene que estar en el propio
+texto Mermaid, porque GitHub/GitLab/el editor de quien lo lea van a
+renderizar exactamente ese texto con su propio motor, no con ninguna
+herramienta de terceros.
+
+**Única excepción**: la topología de infraestructura (Paso 2) se escribe en
+D2, no en Mermaid, y GitHub/GitLab no renderizan bloques D2 de forma nativa.
+Para ese diagrama solo, se genera también un `.svg` junto al `.md` — ver
+Paso 4 y Paso 5b.
 
 - `docs/architecture.md` — el **índice**: diagrama de límites de producción
   (`flowchart`), boundary notes, y una tabla que enlaza a cada diagrama de
   detalle.
 - `docs/diagrams/<slug>.md` — un archivo corto y autocontenido **por
   diagrama de detalle**, cada uno con su propio tipo de Mermaid según lo que
-  describe.
+  describe (excepto la topología de infraestructura, que es D2 + un `.svg`
+  hermano).
 
-Antes de dar cualquier diagrama por terminado, se valida contra el parser
-oficial de `mermaid.js` (ver Paso 5) — el mismo motor que usa GitHub. Esto no
-es opcional: un diagrama que "se ve bien" en una vista previa de terceros
-puede tener sintaxis inválida para el parser real y renderizar roto
-("Syntax error in text") donde de verdad importa.
+Antes de dar cualquier diagrama por terminado, se valida contra su parser o
+compilador real (Paso 5a para Mermaid contra `mermaid.js`, el mismo motor
+que usa GitHub; Paso 5b para la topología de infraestructura contra el
+compilador real de D2). Esto no es opcional: un diagrama que "se ve bien" en
+una vista previa de terceros puede tener sintaxis inválida para el parser
+real y renderizar roto ("Syntax error in text") donde de verdad importa.
 
 ## Límite con design-diagrams
 
@@ -40,12 +48,21 @@ eso es trabajo de `design-diagrams`, no de esta skill.
 El paso de validación necesita `mermaid` + `jsdom` instalados en
 `~/.claude/skills/_shared/mermaid-validate/scripts/` (setup manual, de una
 sola vez, compartido con `design-diagrams` — ninguna de las dos skills
-instala nada sola). Antes de validar (Paso 5), corré el chequeo de
+instala nada sola). Antes de validar (Paso 5a), corré el chequeo de
 `~/.claude/skills/_shared/mermaid-validate/references/setup.md`. Si falla,
 avisale al usuario y detenete ahí sin instalar nada vos mismo — esa
 referencia tiene el mensaje exacto a usar y el porqué de `jsdom`. El resto de
 la skill funciona igual sin esto, pero sin garantía de que el Mermaid
 generado sea sintácticamente válido.
+
+Si el Paso 2 decide generar la topología de infraestructura, hace falta
+además `@d2lang/d2` instalado en
+`~/.claude/skills/_shared/d2-validate/scripts/` (setup manual, de una sola
+vez). Antes de validar y renderizar ese diagrama (Paso 5b), corré el chequeo
+de `~/.claude/skills/_shared/d2-validate/references/setup.md`. Si falla,
+avisale al usuario y detenete ahí sin instalar nada vos mismo — el resto de
+la skill (los diagramas Mermaid) funciona igual sin esto; lo único que no se
+puede generar es el diagrama de infraestructura.
 
 ## Paso 0: Leer contexto de dominio si existe
 
@@ -85,10 +102,16 @@ en su propio archivo bajo `docs/diagrams/`:
 | Máquina de estados | `stateDiagram-v2` | Un enum de estados + transiciones explícitas en código (ej. ciclo de vida de una orden) |
 | Mapa de dependencias | `flowchart` | Un grafo de módulos internos complejo que el boundary diagram no puede mostrar sin saturarse |
 | Topología de almacenamiento | `flowchart` | 2+ sistemas de almacenamiento con reglas de autoridad distintas que valen la pena aislar |
+| Topología de infraestructura | `d2` (fuente) + SVG generado | IaC real (Terraform, Pulumi, CloudFormation, `wrangler.toml`, `docker-compose.yml`, manifiestos k8s) — o, en su ausencia, config de despliegue más informal (un `Dockerfile` suelto, scripts de deploy, variables de entorno que atan un servicio a otro) que alcance para inferir la topología real de despliegue |
 
 No generes un diagrama "porque el catálogo lo tiene" — cada fila de la tabla
 es una hipótesis a confirmar contra el código, no una lista de tareas fija.
 Un proyecto chico puede terminar con solo `overall-architecture` y nada más.
+
+La topología de infraestructura es la única fila que no es Mermaid: se
+genera en D2 porque modela mejor recursos de nube/despliegue (VPCs,
+subredes, contenedores, colas) que un `flowchart` genérico. Ver Paso 3, Paso
+4 y Paso 5b para lo que cambia por eso.
 
 ## Paso 3: Reglas por tipo de diagrama
 
@@ -96,11 +119,19 @@ Antes de dar cualquier diagrama por terminado, seguí dos juegos de reglas:
 
 1. Sintaxis (compartida con `design-diagrams`):
    `~/.claude/skills/_shared/mermaid-validate/references/mermaid-syntax-rules.md`
-   — son las reglas que hacen que el diagrama pase el Paso 5.
+   — son las reglas que hacen que el diagrama pase el Paso 5a.
 2. Fidelidad al código real (propia de esta skill):
    [references/grounding-rules.md](references/grounding-rules.md).
 
 Ninguna de las dos es opcional.
+
+**Excepción — topología de infraestructura**: no le aplica la guía de
+sintaxis Mermaid (es D2, no Mermaid). Su validación de sintaxis es el Paso
+5b, contra el compilador real de D2 — no hace falta una guía de gotchas
+separada porque no hay brecha entre "se ve bien en una preview de terceros"
+y "el motor real lo acepta": el mismo `compile()` que valida es el que
+alimenta el `render()` que genera el SVG final. Sí le aplica la regla de
+fidelidad de `grounding-rules.md`.
 
 ## Paso 4: Redactar cada archivo
 
@@ -127,10 +158,31 @@ Ninguna de las dos es opcional.
 Nombrá el slug en kebab-case describiendo el contenido, no el tipo:
 `docs/diagrams/jwt-login-sequence.md`, no `docs/diagrams/sequence-1.md`.
 
+**`docs/diagrams/<slug>.md` para la topología de infraestructura** es el
+único que difiere, porque D2 no renderiza inline en GitHub/GitLab:
+
+1. `# <Título del diagrama>`
+2. El mismo párrafo de contexto que el resto.
+3. La imagen ya renderizada: `![<alt descriptivo>](<slug>.svg)` — el `.svg`
+   vive junto al `.md`, mismo slug, generado en el Paso 5b.
+4. Un bloque `<details><summary>Fuente D2</summary>` colapsado, con el
+   bloque ` ```d2 ` adentro — la fuente versionable, para quien quiera
+   editarla o abrirla en `d2 --watch`, play.d2lang.com, o una extensión de
+   editor con soporte D2.
+5. `## Notes` — igual que el resto.
+6. Link de vuelta a `[Architecture overview](../architecture.md)`.
+
+El `.svg` no lleva marcadores `generated:start/end` — no hay contenido
+manual posible en un SVG generado, así que se regenera completo en cada
+corrida (Paso 5b), sin intentar preservar nada de la versión anterior.
+
 ## Paso 5: Validar contra el parser oficial
 
 Por cada diagrama escrito (el de `docs/architecture.md` incluido), **antes**
-de darlo por terminado:
+de darlo por terminado, seguí el sub-paso que corresponda a su tipo: 5a para
+todo lo que es Mermaid, 5b solo para la topología de infraestructura (D2).
+
+### Paso 5a: Diagramas Mermaid
 
 1. Escribí el texto Mermaid (sin el fence, solo el código) a un archivo
    temporal, por ejemplo en el directorio de scratch de la sesión.
@@ -152,17 +204,55 @@ de darlo por terminado:
    uno solo.
 6. Borrá el archivo temporal.
 
-Si el chequeo de prerequisito (ver arriba) falló, saltá este paso pero
-**avisale explícitamente al usuario en el reporte final** que el diagrama no
-fue validado y podría tener errores de sintaxis no detectados.
+Si el chequeo de prerequisito de `mermaid-validate` (ver arriba) falló,
+saltá este sub-paso pero **avisale explícitamente al usuario en el reporte
+final** que el diagrama no fue validado y podría tener errores de sintaxis
+no detectados.
+
+### Paso 5b: Topología de infraestructura (D2)
+
+Solo aplica si el Paso 2 decidió generar este diagrama.
+
+1. Escribí el texto D2 (sin el fence, solo el código) a un archivo temporal
+   `.d2` en el directorio de scratch de la sesión.
+2. Corré:
+   ```bash
+   node ~/.claude/skills/_shared/d2-validate/scripts/validate.mjs <temp.d2>
+   ```
+3. Si imprime `OK` (exit code 0): pasá al punto 5 de acá abajo (el render).
+   Si falla (exit code 1): leé el error del compilador (rango + mensaje, uno
+   por línea) y corregilo. No copies el error crudo al `.md` ni al usuario
+   sin antes intentar arreglarlo vos mismo.
+4. **Máximo 2 rondas de corrección**, igual criterio que 5a. Si persiste,
+   marcá el diagrama como no validado y guardá el error crudo para el Paso 8
+   — no generes el `.svg` de un D2 que no compiló.
+5. Una vez que `validate.mjs` imprime `OK`, generá el SVG final directo en
+   destino:
+   ```bash
+   node ~/.claude/skills/_shared/d2-validate/scripts/render.mjs <temp.d2> docs/diagrams/<slug>.svg
+   ```
+6. Borrá el `.d2` temporal — el `.svg` generado sí se commitea, junto al
+   `.md` (Paso 4).
+
+Si el chequeo de prerequisito de `d2-validate` (ver arriba) falló, saltá
+este sub-paso: no generes el `.md` ni el `.svg` de la topología de
+infraestructura, y avisale al usuario explícitamente en el reporte final
+por qué se omitió (sin ese paquete no hay forma de producir el SVG ni de
+garantizar que el D2 compile).
 
 ## Verificación visual (opcional, no es parte del flujo automático)
 
-Dos herramientas — abrir el diagrama en `mermaid.live` para que lo vea el
-usuario, o sacarle un screenshot headless para verlo vos mismo — descritas
-en `~/.claude/skills/_shared/mermaid-validate/references/visual-verification.md`
+Aplica solo a diagramas Mermaid (Paso 5a). Dos herramientas — abrir el
+diagrama en `mermaid.live` para que lo vea el usuario, o sacarle un
+screenshot headless para verlo vos mismo — descritas en
+`~/.claude/skills/_shared/mermaid-validate/references/visual-verification.md`
 (compartido con `design-diagrams`).
-**Ninguna corre sola en el Paso 5**, que sigue siendo solo `validate.mjs`.
+**Ninguna corre sola en el Paso 5a**, que sigue siendo solo `validate.mjs`.
+
+No aplica a la topología de infraestructura: el Paso 5b ya produce el SVG
+con el compilador y layout reales de D2, no una preview de terceros — no hay
+brecha entre "se ve bien" y "el motor real lo acepta" que verificar por
+separado.
 
 **Invocalas vos mismo, sin que te lo pidan, solo en estos tres casos** —
 siempre "algo concreto está en duda", nunca rutina:
@@ -220,6 +310,11 @@ archivo existente no tiene los marcadores (fue escrito a mano), no lo pises:
 mostrale al usuario un resumen de qué cambiaría y preguntá si agrega los
 marcadores o mergea a mano.
 
+El `.svg` de la topología de infraestructura es la única excepción: no lleva
+marcadores, no tiene contenido manual posible, y se sobrescribe entero en
+cada corrida (Paso 5b) sin pedir confirmación — el `.md` que lo acompaña sí
+sigue la regla de marcadores como cualquier otro.
+
 Si al re-explorar detectás que el material que justificaba un
 `docs/diagrams/<slug>.md` ya no existe en el código (el flujo cambió, la
 tabla se eliminó), **no borres el archivo solo** — decíselo al usuario y
@@ -237,8 +332,11 @@ cómo extraer la comparación y el formato exacto. Si es la primera corrida
 
 - Lista de archivos creados/actualizados/sin cambios.
 - Si algún diagrama no pudo validarse (prerequisito faltante, o agotó las 2
-  rondas de corrección del Paso 5): decilo explícito, con el error puntual
-  del parser.
+  rondas de corrección del Paso 5a/5b): decilo explícito, con el error
+  puntual del parser/compilador.
+- Si se omitió la topología de infraestructura por faltar el prerequisito de
+  `d2-validate`, decilo explícito y con el comando de instalación exacto
+  (ver `~/.claude/skills/_shared/d2-validate/references/setup.md`).
 - Si el Paso 6 corrigió alguna cita desactualizada (archivo movido, nombre
   renombrado), decilo — es información que el usuario probablemente quiere
   saber aunque no haya pedido una auditoría.
@@ -259,3 +357,4 @@ cómo extraer la comparación y el formato exacto. Si es la primera corrida
 | `~/.claude/skills/_shared/mermaid-validate/references/setup.md` | Por qué hace falta `jsdom`, cómo instalar, qué decir si falla el prerequisito — compartido con `design-diagrams` (Prerequisito) |
 | `~/.claude/skills/_shared/mermaid-validate/references/mermaid-syntax-rules.md` | Reglas de sintaxis Mermaid generales y por tipo — compartidas con `design-diagrams` (Paso 3) |
 | `~/.claude/skills/_shared/mermaid-validate/references/visual-verification.md` | Mecánica de `open-live.mjs` y `screenshot.mjs` — compartido con `design-diagrams` (Verificación visual) |
+| `~/.claude/skills/_shared/d2-validate/references/setup.md` | Por qué hace falta `@d2lang/d2`, cómo instalar, qué decir si falla el prerequisito — solo para la topología de infraestructura (Prerequisito, Paso 5b) |

@@ -12,7 +12,7 @@
       "type": "documentation",
       "channel": "experimental",
       "maturity": "experimental",
-      "summary": "Genera documentación de arquitectura grounded en el código real, con diagramas Mermaid validados contra el parser oficial antes de darse por terminados. Tiene scripts propios (validate.mjs, screenshot.mjs) pero aún sin caso de uso real documentado ni comparación contra línea base."
+      "summary": "Genera documentación de arquitectura grounded en el código real, con diagramas Mermaid validados contra el parser oficial, más un diagrama de topología de infraestructura en D2 (validado y renderizado vía skills/_shared/d2-validate/) cuando hay IaC real o config de despliegue informal que lo justifique. Probada en esta sesión contra dos repos externos (LiveRoom AI, twin) para validar la feature nueva; sin caso de uso real registrado en foundry/cases/ ni comparación contra línea base todavía — esas corridas fueron pruebas armadas para probar la skill, no evidencia de uso real (ver foundry/runs/README.md)."
     },
     "cost-audit": {
       "type": "audit",

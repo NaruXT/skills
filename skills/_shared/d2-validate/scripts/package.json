@@ -1,0 +1,8 @@
+{
+  "name": "d2-validate",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@d2lang/d2": "^0.1.33"
+  }
+}

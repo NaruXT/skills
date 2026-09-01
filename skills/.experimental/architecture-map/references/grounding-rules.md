@@ -10,6 +10,9 @@ Para las reglas de **sintaxis** (frontmatter, `;`, `end`, `#`, backticks,
 edge-spaghetti) ver
 `~/.claude/skills/_shared/mermaid-validate/references/mermaid-syntax-rules.md`
 — esas sí son compartidas, porque son hechos del parser, no de la fuente.
+Excepción: la topología de infraestructura es D2, no Mermaid — su sintaxis
+la valida directamente el compilador real (`d2-validate`, SKILL.md Paso 5b),
+sin guía aparte. Las reglas de fidelidad de este archivo sí le aplican.
 
 - Nombres de nodos/participantes/clases en el mismo casing que usa el código
   real (no inventes nombres bonitos si el código dice `OrderSvc`, usá
@@ -25,3 +28,14 @@ edge-spaghetti) ver
 - `stateDiagram-v2`: un estado por valor real del enum. Una transición por
   cada función/rama de código que efectivamente cambia el estado — no
   inventes transiciones "lógicas" que el código no implementa.
+- Topología de infraestructura (D2): un nodo por recurso declarado en IaC o
+  config de despliegue real (un `resource` de Terraform, un `service` de
+  `docker-compose.yml`, un binding de `wrangler.toml`, un `Deployment`/
+  `Service` de k8s) — no inventes recursos "típicos" que no estén en el
+  archivo (una CDN, un WAF, una réplica de lectura) solo porque suelen
+  acompañar ese tipo de arquitectura. No inventes regiones, zonas de
+  disponibilidad, ni tiers de instancia que no estén especificados en la
+  fuente. Si la config es informal (un `Dockerfile` suelto, variables de
+  entorno) en vez de IaC declarativo, marcá en `## Notes` qué relaciones son
+  inferidas y de qué evidencia salen — no las trates con la misma certeza
+  que un recurso declarado explícitamente.

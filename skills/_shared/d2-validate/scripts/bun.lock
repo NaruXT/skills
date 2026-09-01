@@ -1,0 +1,15 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "d2-validate",
+      "dependencies": {
+        "@d2lang/d2": "^0.1.33",
+      },
+    },
+  },
+  "packages": {
+    "@d2lang/d2": ["@d2lang/d2@0.1.33", "", {}, "sha512-amVNjWeVHffM2PIZLEiTXiweoqMBtnw85+DuP5htqTRF70nz1PaEq76lkGQB6gLiUqGd8rdSBjobR7TteiZuJA=="],
+  }
+}
